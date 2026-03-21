@@ -87,7 +87,7 @@ export function TransactionList() {
                     </span>
                 </td>
                 <td className="px-8 py-6 text-[10px] font-black uppercase tracking-widest">
-                  <span className="px-3 py-1 bg-secondary rounded-full border border-border text-foreground">
+                  <span className="px-3 py-1 bg-background dark:bg-secondary rounded-full border border-border text-foreground">
                     {tx.planType}
                   </span>
                 </td>
@@ -99,10 +99,10 @@ export function TransactionList() {
                     className={cn(
                       "text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border",
                       tx.status === "completed"
-                        ? "bg-transparent text-emerald-800 border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50"
+                        ? "bg-background text-emerald-800 border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50"
                         : tx.status === "pending"
-                          ? "bg-transparent text-amber-800 border-amber-800 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50"
-                          : "bg-secondary text-muted-foreground border-border"
+                          ? "bg-background text-amber-800 border-amber-800 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50"
+                          : "bg-background dark:bg-secondary text-muted-foreground border-border"
                     )}
                   >
                     {tx.status}
@@ -148,10 +148,10 @@ export function TransactionList() {
                     className={cn(
                       "inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border",
                       tx.status === "completed"
-                        ? "bg-transparent text-emerald-800 border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50"
+                        ? "bg-background text-emerald-800 border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50"
                         : tx.status === "pending"
-                          ? "bg-transparent text-amber-800 border-amber-800 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50"
-                          : "bg-secondary text-muted-foreground border-border"
+                          ? "bg-background text-amber-800 border-amber-800 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50"
+                          : "bg-background dark:bg-secondary text-muted-foreground border-border"
                     )}
                   >
                     {tx.status}
@@ -159,10 +159,10 @@ export function TransactionList() {
                </div>
                <div className="text-right">
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">Plan</p>
-                  <span className="inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-secondary rounded-full border border-border text-foreground">
-                    {tx.planType}
-                  </span>
-               </div>
+                   <span className="inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-background dark:bg-secondary rounded-full border border-border text-foreground">
+                     {tx.planType}
+                   </span>
+                </div>
             </div>
             <div className="pt-2 text-right">
                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter">
