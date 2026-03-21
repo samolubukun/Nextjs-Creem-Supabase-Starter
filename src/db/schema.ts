@@ -67,7 +67,7 @@ export const creditTransactions = pgTable("credit_transactions", {
 
 export const subscriptions = pgTable("subscriptions", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
-	userId: uuid("user_id").notNull(),
+	userId: uuid("user_id").notNull().unique(),
 	creemCustomerId: text("creem_customer_id"),
 	creemSubscriptionId: text("creem_subscription_id"),
 	creemProductId: text("creem_product_id"),
@@ -88,7 +88,7 @@ export const subscriptions = pgTable("subscriptions", {
 
 export const credits = pgTable("credits", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
-	userId: uuid("user_id").notNull(),
+	userId: uuid("user_id").notNull().unique(),
 	balance: integer().default(0).notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 }, (table) => [
