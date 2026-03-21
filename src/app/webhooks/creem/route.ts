@@ -9,6 +9,11 @@ export const POST = Webhook({
 
   onCheckoutCompleted: async (event) => {
     const db = getSupabaseAdmin();
+    console.log(`[webhook] checkout.completed fired. webhookId=${event.webhookId}`);
+    console.log(`[webhook] metadata:`, JSON.stringify(event.metadata));
+    console.log(`[webhook] product: id=${event.product.id}, name=${event.product.name}`);
+    console.log(`[webhook] subscription:`, event.subscription ? `id=${event.subscription.id}` : "none (one-time)");
+
     const row = buildSubscriptionUpsert({
       metadata: event.metadata as { user_id?: string } | undefined,
       product: { id: event.product.id, name: event.product.name },
@@ -22,8 +27,10 @@ export const POST = Webhook({
         : undefined,
     });
 
+    console.log(`[webhook] built row:`, JSON.stringify(row));
+
     if (!row.user_id) {
-      console.log("[webhook] checkout.completed: no user_id in metadata, skipping");
+      console.log("[webhook][ERROR] checkout.completed: no user_id in metadata, skipping");
       return;
     }
 
@@ -39,12 +46,19 @@ export const POST = Webhook({
       return;
     }
 
+    // Upsert subscription FIRST, before recording the webhook event
+    const { error: subError } = await db.from("subscriptions").upsert(row, { onConflict: "user_id" });
+    if (subError) {
+      console.error(`[webhook][ERROR] subscriptions.upsert FAILED:`, subError.message, subError.details, subError.hint);
+    } else {
+      console.log(`[webhook] subscriptions.upsert SUCCESS for user ${row.user_id}`);
+    }
+
+    // Record webhook event AFTER critical operations succeed
     await db.from("webhook_events").insert({
       id: event.webhookId,
       event_type: "checkout.completed",
     });
-
-    await db.from("subscriptions").upsert(row, { onConflict: "user_id" });
 
     // Send Payment Confirmation Email
     const { data: userData } = await db.auth.admin.getUserById(row.user_id);
@@ -63,7 +77,7 @@ export const POST = Webhook({
     const licenseKey = (event as any).feature?.license?.key;
     if (licenseKey && row.user_id) {
        console.log(`[webhook] Storing license key for user ${row.user_id}`);
-       await db.from("licenses").upsert({
+       const { error: licError } = await db.from("licenses").upsert({
           user_id: row.user_id,
           creem_license_key: licenseKey,
           creem_product_id: row.creem_product_id,
@@ -71,6 +85,7 @@ export const POST = Webhook({
           status: "active",
           activated_at: new Date().toISOString()
        }, { onConflict: "creem_license_key" });
+       if (licError) console.error(`[webhook][ERROR] licenses.upsert FAILED:`, licError.message);
     }
 
     await handleCreditGrant(
@@ -85,17 +100,27 @@ export const POST = Webhook({
 
   onSubscriptionPaid: async (event) => {
     const db = getSupabaseAdmin();
+    console.log(`[webhook] subscription.paid fired. subscription_id=${event.id}`);
     const update = buildSubscriptionUpdate("active", {
       current_period_end_date: event.current_period_end_date,
     });
-    await db.from("subscriptions").update(update).eq("creem_subscription_id", event.id);
+    const { error: updateErr } = await db.from("subscriptions").update(update).eq("creem_subscription_id", event.id);
+    if (updateErr) {
+      console.error(`[webhook][ERROR] subscription.paid update FAILED:`, updateErr.message);
+    } else {
+      console.log(`[webhook] subscription.paid update SUCCESS for sub ${event.id}`);
+    }
 
     // Grant credits for the new period
-    const { data: sub } = await db
+    const { data: sub, error: subFetchErr } = await db
       .from("subscriptions")
       .select("user_id, creem_product_id, product_name")
       .eq("creem_subscription_id", event.id)
       .single();
+
+    if (subFetchErr) {
+      console.error(`[webhook][ERROR] subscription.paid: could not find subscription row for sub ${event.id}:`, subFetchErr.message);
+    }
 
     if (sub && sub.user_id && sub.creem_product_id) {
       await handleCreditGrant(
@@ -106,6 +131,8 @@ export const POST = Webhook({
         "subscription_topup",
         (event as any).amount // Pass the actual amount paid
       );
+    } else {
+      console.error(`[webhook][ERROR] subscription.paid: no matching subscription found for creem_subscription_id=${event.id}`);
     }
   },
 
