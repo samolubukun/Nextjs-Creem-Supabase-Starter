@@ -96,6 +96,19 @@ export const POST = Webhook({
       isOneTime ? "purchase" : "subscription_topup",
       (event as any).amount // Pass the actual amount paid
     );
+
+    // Record billing event for notification
+    if (row.user_id) {
+      await db.from("billing_events").insert({
+        user_id: row.user_id,
+        event_type: "checkout.completed",
+        creem_transaction_id: (event as any).transaction_id,
+        amount: (event as any).amount,
+        currency: (event as any).currency || "USD",
+        reason: `Successful purchase of ${productName}`,
+        status: "open",
+      });
+    }
   },
 
   onSubscriptionPaid: async (event) => {
@@ -131,6 +144,17 @@ export const POST = Webhook({
         "subscription_topup",
         (event as any).amount // Pass the actual amount paid
       );
+
+      // Record billing event for notification
+      await db.from("billing_events").insert({
+        user_id: sub.user_id,
+        event_type: "subscription_topup",
+        creem_transaction_id: event.id,
+        amount: (event as any).amount,
+        currency: (event as any).currency || "USD",
+        reason: `Subscription renewed: ${sub.product_name ?? "Active Plan"}`,
+        status: "open",
+      });
     } else {
       console.error(`[webhook][ERROR] subscription.paid: no matching subscription found for creem_subscription_id=${event.id}`);
     }
@@ -142,6 +166,18 @@ export const POST = Webhook({
       canceled_at: event.canceled_at,
     });
     await db.from("subscriptions").update(update).eq("creem_subscription_id", event.id);
+
+    // Record billing event for notification
+    const { data: sub } = await db.from("subscriptions").select("user_id, product_name").eq("creem_subscription_id", event.id).single();
+    if (sub?.user_id) {
+      await db.from("billing_events").insert({
+        user_id: sub.user_id,
+        event_type: "subscription.canceled",
+        creem_subscription_id: event.id,
+        reason: `Subscription to ${sub.product_name || "Plan"} cancelled`,
+        status: "open",
+      });
+    }
   },
 
   onSubscriptionExpired: async (event) => {
@@ -174,6 +210,18 @@ export const POST = Webhook({
       .from("subscriptions")
       .update({ status: "past_due" })
       .eq("creem_subscription_id", event.id);
+
+    // Record billing event for notification
+    const { data: sub } = await db.from("subscriptions").select("user_id, product_name").eq("creem_subscription_id", event.id).single();
+    if (sub?.user_id) {
+       await db.from("billing_events").insert({
+         user_id: sub.user_id,
+         event_type: "subscription.past_due",
+         creem_subscription_id: event.id,
+         reason: `Action Required: Payment failed for ${sub.product_name || "Plan"}`,
+         status: "open",
+       });
+    }
   },
 
   onSubscriptionUpdate: async (event) => {

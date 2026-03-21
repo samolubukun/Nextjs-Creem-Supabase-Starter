@@ -57,6 +57,10 @@ export function NotificationDropdown() {
         return <AlertCircle className="size-4 text-amber-500" />;
       case "dispute":
         return <X className="size-4 text-destructive" />;
+      case "subscription.canceled":
+        return <X className="size-4 text-muted-foreground" />;
+      case "subscription.past_due":
+        return <AlertCircle className="size-4 text-destructive animate-pulse" />;
       default:
         return <Info className="size-4 text-blue-500" />;
     }
@@ -69,6 +73,8 @@ export function NotificationDropdown() {
       case "purchase": return "Credits Purchased";
       case "refund": return "Refund Issued";
       case "dispute": return "Dispute Opened";
+      case "subscription.canceled": return "Subscription Cancelled";
+      case "subscription.past_due": return "Payment Failed";
       default: return "System Notification";
     }
   };
