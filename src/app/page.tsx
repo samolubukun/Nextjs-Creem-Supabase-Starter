@@ -214,7 +214,7 @@ export default function LandingPage() {
                         {f.icon}
                       </div>
                       <h3 className="text-2xl font-black tracking-tighter mb-4 uppercase">{f.title}</h3>
-                      <p className="text-muted-foreground font-medium text-lg leading-relaxed">{f.description}</p>
+                      <p className="text-slate-400 font-medium text-lg leading-relaxed">{f.description}</p>
                     </div>
                   </CommandCard>
                 </motion.div>
@@ -248,7 +248,7 @@ export default function LandingPage() {
             </div>
             <div className="grid gap-6 md:grid-cols-3">
               {secondaryFeatures.map((f, i) => (
-                <CommandCard key={f.title} className="bg-secondary/50 !rounded-3xl hover:bg-slate-900 border-white/5">
+                <CommandCard key={f.title} className="bg-secondary/50 !rounded-3xl hover:bg-slate-900 border-white/5 text-foreground hover:text-white transition-colors">
                   <div className="p-8">
                     <div className="size-10 rounded-xl bg-background flex items-center justify-center text-foreground mb-6 shadow-sm border border-white/5">
                       {f.icon}

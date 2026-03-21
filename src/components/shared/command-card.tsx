@@ -27,7 +27,7 @@ export function CommandCard({
         initial="initial"
         animate="animate"
         className={cn(
-          "rounded-[2rem] bg-slate-950 border border-white/10 overflow-hidden relative group",
+          "rounded-[2rem] bg-slate-950 border border-white/10 overflow-hidden relative group text-slate-50",
           glow && "shadow-[0_0_50px_-12px_rgba(var(--primary),0.15)]",
           className
         )}
@@ -36,8 +36,8 @@ export function CommandCard({
         {glow && (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
         )}
-        <Card className="bg-transparent border-none shadow-none h-full">
-          <CardContent className="p-0 h-full">
+        <Card className="bg-transparent border-none shadow-none h-full text-inherit">
+          <CardContent className="p-0 h-full text-inherit">
             {children}
           </CardContent>
         </Card>
@@ -48,7 +48,7 @@ export function CommandCard({
   return (
     <div
       className={cn(
-        "rounded-[2rem] bg-slate-950 border border-white/10 overflow-hidden relative group",
+        "rounded-[2rem] bg-slate-950 border border-white/10 overflow-hidden relative group text-slate-50",
         glow && "shadow-[0_0_50px_-12px_rgba(var(--primary),0.15)]",
         className
       )}
@@ -57,8 +57,8 @@ export function CommandCard({
       {glow && (
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       )}
-      <Card className="bg-transparent border-none shadow-none h-full">
-        <CardContent className="p-0 h-full">
+      <Card className="bg-transparent border-none shadow-none h-full text-inherit">
+        <CardContent className="p-0 h-full text-inherit">
           {children}
         </CardContent>
       </Card>

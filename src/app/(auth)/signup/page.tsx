@@ -132,10 +132,10 @@ export default function SignupPage() {
 
                 <div className="relative py-4">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-200"></div>
+                    <div className="w-full border-t border-border"></div>
                   </div>
                   <div className="relative flex justify-center text-xs uppercase font-black tracking-widest">
-                    <span className="bg-white px-4 text-muted-foreground">Or with provider</span>
+                    <span className="bg-card px-4 text-muted-foreground">Or with provider</span>
                   </div>
                 </div>
 
