@@ -1,0 +1,197 @@
+@import "tailwindcss";
+
+:root {
+  /* Core Palette: Slate 50 + Warm Peach */
+  --background: #f8fafc; /* Slate 50 */
+  --foreground: #020617; /* Slate 950 */
+  
+  --card: #ffffff;
+  --card-foreground: #020617;
+  
+  --popover: #ffffff;
+  --popover-foreground: #020617;
+  
+  --primary: #ffbe98; /* Warm Peach */
+  --primary-foreground: #471a00;
+  
+  --secondary: #f1f5f9; /* Slate 100 */
+  --secondary-foreground: #0f172a;
+  
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  
+  --accent: #fdf2f8;
+  --accent-foreground: #ffbe98;
+  
+  --destructive: #ef4444;
+  --destructive-foreground: #f8fafc;
+  --destructive-soft: #ff6b6b; /* Softer, less vivid red */
+  
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #ffbe98;
+  
+  --logo-invert: invert(0);
+  --radius: 2.5rem;
+
+  /* Legacy variables for backward compatibility during transition */
+  --bg-primary: var(--background);
+  --bg-secondary: var(--secondary);
+  --text-primary: var(--foreground);
+  --text-muted: var(--muted-foreground);
+  --accent-orange: var(--primary);
+  --border-bold: #000000;
+}
+
+.dark {
+  --background: #020617; /* Slate 950 */
+  --foreground: #f8fafc; /* Slate 50 */
+  
+  --card: #0f172a;       /* Slate 900 */
+  --card-foreground: #f8fafc;
+  
+  --popover: #0f172a;
+  --popover-foreground: #f8fafc;
+  
+  --primary: #ffbe98;    /* Keep Warm Peach */
+  --primary-foreground: #471a00;
+  
+  --secondary: #1e293b;  /* Slate 800 */
+  --secondary-foreground: #f1f5f9;
+  
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8; /* Slate 400 */
+  
+  --accent: #1e1b19;     /* Very dark warm brown-black */
+  --accent-foreground: #ffbe98;
+  
+  --destructive: #7f1d1d; /* Dark red */
+  --destructive-foreground: #f8fafc;
+  
+  --border: #1e293b;
+  --input: #1e293b;
+  --logo-invert: invert(1);
+  --ring: #ffbe98;
+  
+  --border-bold: #ffffff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  
+  --radius-xl: var(--radius);
+  --radius-2xl: calc(var(--radius) + 0.5rem);
+  
+  --font-sans: var(--font-bricolage-grotesque);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+@utility btn-disabled {
+  @apply opacity-50;
+}
+
+@layer utilities {
+  .fiery-text-effect {
+    background: linear-gradient(
+      to top,
+      #000000 0%,
+      #ff4d00 30%,
+      #ffbe98 60%,
+      #ffbe98 100%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 10px 20px rgba(255, 120, 0, 0.2));
+    animation: fiery-pulse 3s ease-in-out infinite;
+    display: inline-block;
+  }
+
+  @keyframes fiery-pulse {
+    0%, 100% { 
+      filter: drop-shadow(0 10px 20px rgba(255, 120, 0, 0.2));
+      transform: scale(1);
+    }
+    50% { 
+      filter: drop-shadow(0 15px 30px rgba(255, 190, 152, 0.4));
+      transform: scale(1.02);
+    }
+  }
+}
+
+/* Global Scrollbar Styling: Light Peach */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #fcece3 transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #fcece3; /* Very lightish peach */
+  border-radius: 20px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #ffbe98; /* Warm Peach on hover */
+}
+
+/* rehype-pretty-code styling */
+pre {
+  overflow-x: auto !important;
+  max-width: 100% !important;
+  border-radius: 1rem !important;
+}
+
+pre [data-line] {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+pre code {
+  display: grid !important;
+  min-width: 100% !important;
+  font-family: var(--font-mono) !important;
+}
+
+[data-rehype-pretty-code-figure] {
+  margin: 2rem 0;
+  width: 100%;
+  overflow: hidden;
+}
