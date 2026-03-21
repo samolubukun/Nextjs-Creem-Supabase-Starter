@@ -1,0 +1,48 @@
+---
+title: "Scale your SAAS with Nextjs-Creem-Starter"
+publishedAt: "2026-03-19"
+summary: "Why we built the ultimate 'command-center' template for modern builders who value speed and design."
+author: "Samuel Olubukun"
+image: "/blog/scale-saas.png"
+---
+
+# Scale your SAAS with Nextjs-Creem-Starter
+
+Welcome to the future of SAAS development. We built this template because we were tired of "standard" boilerplates that lacked soul. 
+
+## The Command Center Philosophy
+
+Most templates give you a dashboard. We give you a **Command Center**. 
+
+- **Dark Mode by Default**: Because real builders work at night.
+- **Global Payments**: Integrated with Creem.io for zero-friction checkouts.
+- **MDX Blog**: This very page is powered by MDX, giving you the power of React inside your articles.
+
+### Custom Components
+
+You can define and use React components directly. Here is a live `<Callout />` component:
+
+<Callout>
+  This is a custom interactive callout rendered directly from MDX! It uses the same theme tokens as the rest of the site.
+</Callout>
+
+### Syntax Highlighting
+
+We use `rehype-pretty-code` for premium syntax highlighting in both light and dark modes:
+
+```tsx
+// Example of the Callout component logic
+export function Callout({ children }) {
+  return (
+    <div className="p-6 bg-primary/5 border-l-4 border-primary rounded-r-2xl my-8">
+      {children}
+    </div>
+  );
+}
+```
+
+### Why MDX?
+
+MDX allows you to embed interactive components directly in your content. Want to show a "Buy Now" button in the middle of a tutorial? **Just drop it in.**
+
+Stay tuned for more updates as we continue to push the boundaries of what a SAAS starter can be.
