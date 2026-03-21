@@ -12,10 +12,12 @@ export function OAuthButtons() {
   async function handleOAuth(provider: "google") {
     setLoading(provider);
     const supabase = createSupabaseBrowser();
+    const origin = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+    
     await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/callback`,
+        redirectTo: `${origin}/callback`,
       },
     });
   }
