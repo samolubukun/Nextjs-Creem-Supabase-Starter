@@ -92,7 +92,7 @@ export function PricingCard({ plan, discountCode }: { plan: PricingPlan; discoun
               : "bg-foreground text-background hover:bg-foreground/90 shadow-foreground/10"
           )}
         >
-          {loading ? "Syncing Node..." : "Initiate Protocol"}
+          {loading ? "Processing Payment..." : "Initiate Payment"}
         </Button>
       </CardFooter>
     </Card>

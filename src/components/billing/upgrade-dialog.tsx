@@ -135,7 +135,7 @@ export function UpgradeDialog({ subscriptionId, currentProductId, plans }: Upgra
                     ) : (
                        <ArrowDown className="size-3 text-warning group-hover:text-primary-foreground" />
                     )}
-                    {loading === "syncing" ? "Syncing Node" : loading === plan.id ? "Processing" : isUpgrade ? "Upgrade" : "Downgrade"}
+                    {loading === "syncing" ? "Processing Payment" : loading === plan.id ? "Processing" : isUpgrade ? "Upgrade" : "Downgrade"}
                   </Button>
                 )}
               </div>
