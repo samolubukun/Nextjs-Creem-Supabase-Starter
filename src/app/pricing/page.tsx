@@ -18,7 +18,13 @@ const plans = [
     period: "month",
     description: "Essential AI tools to spark your ideas",
     productId: process.env.NEXT_PUBLIC_CREEM_STARTER_PRODUCT_ID ?? "prod_starter",
-    features: ["1 AI Workspace", "Basic content generation", "Standard voice cloning (1 voice)", "Email support"],
+    features: [
+      "100 AI credits per month",
+      "1 AI Workspace", 
+      "Basic content generation", 
+      "Standard voice cloning (1 voice)", 
+      "Email support"
+    ],
   },
   {
     name: "Creator",
@@ -28,6 +34,7 @@ const plans = [
     productId: process.env.NEXT_PUBLIC_CREEM_PRO_PRODUCT_ID ?? "prod_pro",
     popular: true,
     features: [
+      "500 AI credits per month",
       "Unlimited AI Workspaces",
       "Advanced content engine",
       "Custom voice cloning (up to 5)",
@@ -43,6 +50,7 @@ const plans = [
     description: "Maximum power for serious production teams",
     productId: process.env.NEXT_PUBLIC_CREEM_ENTERPRISE_PRODUCT_ID ?? "prod_enterprise",
     features: [
+      "2,000 AI credits per month",
       "Everything in Creator",
       "Unlimited team members",
       "Dedicated account manager",
@@ -58,8 +66,8 @@ const plans = [
     description: "Lifetime ownership of the world's most powerful content engine",
     productId: process.env.NEXT_PUBLIC_CREEM_PRO_MAX_PRODUCT_ID ?? "prod_W3MrXbD703JLiOAJyL6TD",
     features: [
-      "Lifetime access (No subscriptions)",
       "Unlimited AI credits forever",
+      "Lifetime access (No subscriptions)",
       "Full source code access",
       "Dedicated 24/7 success manager",
       "Custom integration support",
