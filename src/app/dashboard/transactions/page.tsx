@@ -23,7 +23,7 @@ export default async function TransactionsPage() {
       </div>
 
       <Card className="border border-border shadow-sm overflow-hidden bg-card">
-        <CardHeader className="p-8 border-b border-border bg-secondary/30">
+        <CardHeader className="p-8 border-b border-border bg-background">
            <CardTitle className="text-xl text-foreground">Transaction Ledger</CardTitle>
            <CardDescription>Detailed history of acquisitions and subscriptions.</CardDescription>
         </CardHeader>

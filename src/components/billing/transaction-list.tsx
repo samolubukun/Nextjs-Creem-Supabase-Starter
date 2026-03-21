@@ -59,7 +59,7 @@ export function TransactionList() {
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b bg-secondary/50">
+            <tr className="text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b bg-background dark:bg-secondary/50">
               <th className="px-8 py-4">Transaction Descriptor</th>
               <th className="px-8 py-4 text-right">Amount</th>
               <th className="px-8 py-4">Plan Type</th>
@@ -69,7 +69,7 @@ export function TransactionList() {
           </thead>
           <tbody className="divide-y divide-border">
             {transactions.map((tx) => (
-              <tr key={tx.id} className="group hover:bg-secondary/50 transition-colors">
+              <tr key={tx.id} className="group hover:bg-secondary/20 transition-colors">
                 <td className="px-8 py-6">
                    <div className="flex items-center gap-3">
                       <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
@@ -173,7 +173,7 @@ export function TransactionList() {
         ))}
       </div>
 
-      <div className="flex items-center justify-between p-8 border-t border-border bg-secondary/30">
+      <div className="flex items-center justify-between p-8 border-t border-border bg-background dark:bg-secondary/30">
         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Page {page}</p>
         <div className="flex gap-3">
           <Button
