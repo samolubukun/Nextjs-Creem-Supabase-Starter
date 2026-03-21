@@ -30,10 +30,29 @@ export default async function AdminCRMPage() {
   // Fetch profiles to get total_spent_cents
   const { data: profileRecords } = await supabaseAdmin.from("profiles").select("id, total_spent_cents");
   
-  const profiles = (users || []).map(u => ({
-    ...u,
-    total_spent_cents: profileRecords?.find(p => p.id === u.id)?.total_spent_cents || 0
-  }));
+  // Fetch all credit transactions to calculate legacy revenue (fallback)
+  const { data: allTransactions } = await supabaseAdmin
+    .from("credit_transactions")
+    .select("user_id, description");
+
+  const profiles = (users || []).map(u => {
+    const profile = profileRecords?.find(p => p.id === u.id);
+    let spent = profile?.total_spent_cents || 0;
+    
+    // Fallback logic to match dashboard/page.tsx
+    if (spent === 0 && allTransactions) {
+      const userTxs = allTransactions.filter(tx => tx.user_id === u.id);
+      spent = userTxs.reduce((sum, tx) => {
+        const match = (tx.description || "").match(/\[PRICE:(\d+)\]/);
+        return sum + (match ? parseInt(match[1], 10) : 0);
+      }, 0);
+    }
+    
+    return {
+      ...u,
+      total_spent_cents: spent
+    };
+  });
 
   // Fetch subscriptions
   const { data: subscriptions } = await supabaseAdmin
