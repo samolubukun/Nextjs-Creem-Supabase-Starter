@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { PricingSection } from "@/components/billing/pricing-section";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/currency";
+import { LandingHeader } from "@/components/layout/landing-header";
+import { LandingFooter } from "@/components/layout/landing-footer";
 import { Github, ShieldCheck } from "lucide-react";
 
 // Creem test product IDs — replace with production IDs before going live
@@ -68,25 +70,10 @@ const plans = [
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-background selection:bg-primary/30">
-      {/* Navigation */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-xl border-border">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-20 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-black tracking-tighter text-foreground uppercase">
-            CREEMxSAAS
-          </Link>
-          <nav className="flex items-center gap-8">
-            <Link href="/login" className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors">
-              Sign In
-            </Link>
-            <Button asChild className="rounded-xl font-black uppercase tracking-tighter text-[10px] sm:text-xs px-6">
-              <Link href="/signup">Get Started</Link>
-            </Button>
-          </nav>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background selection:bg-primary/30 flex flex-col">
+      <LandingHeader />
 
-      <main>
+      <main className="flex-1">
         {/* Hero Section */}
         <section className="pt-24 pb-20 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 md:px-6 text-center">
@@ -145,9 +132,7 @@ export default function PricingPage() {
         </section>
       </main>
 
-      <footer className="py-12 border-t border-border text-center text-xs font-black uppercase tracking-widest text-muted-foreground bg-background">
-        &copy; {new Date().getFullYear()} CREEMxSAAS. All Rights Reserved.
-      </footer>
+      <LandingFooter />
     </div>
   );
 }
