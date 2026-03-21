@@ -99,10 +99,10 @@ export function TransactionList() {
                     className={cn(
                       "text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border",
                       tx.status === "completed"
-                        ? "bg-background text-emerald-800 border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50"
+                        ? "bg-white text-emerald-700 border-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800"
                         : tx.status === "pending"
-                          ? "bg-background text-amber-800 border-amber-800 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50"
-                          : "bg-background dark:bg-secondary text-muted-foreground border-border"
+                          ? "bg-white text-amber-700 border-amber-600 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800"
+                          : "bg-white dark:bg-secondary text-muted-foreground border-border"
                     )}
                   >
                     {tx.status}
@@ -148,10 +148,10 @@ export function TransactionList() {
                     className={cn(
                       "inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border",
                       tx.status === "completed"
-                        ? "bg-background text-emerald-800 border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50"
+                        ? "bg-white text-emerald-700 border-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800"
                         : tx.status === "pending"
-                          ? "bg-background text-amber-800 border-amber-800 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50"
-                          : "bg-background dark:bg-secondary text-muted-foreground border-border"
+                          ? "bg-white text-amber-700 border-amber-600 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800"
+                          : "bg-white dark:bg-secondary text-muted-foreground border-border"
                     )}
                   >
                     {tx.status}
