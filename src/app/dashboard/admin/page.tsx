@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Users, CreditCard, Key, ShoppingBag, MessageSquare, Layers, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
+import { DeleteUserButton } from "@/components/admin/delete-user-button";
 
 // Initialize Supabase Admin Client
 const supabaseAdmin = createClient(
@@ -157,6 +158,7 @@ export default async function AdminCRMPage() {
               <th className="p-4 font-black uppercase tracking-widest text-[10px] text-muted-foreground">Subscription</th>
               <th className="p-4 font-black uppercase tracking-widest text-[10px] text-muted-foreground">Seats</th>
               <th className="p-4 font-black uppercase tracking-widest text-[10px] text-muted-foreground text-right">Spent</th>
+              <th className="p-4 font-black uppercase tracking-widest text-[10px] text-muted-foreground text-center">Options</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -187,6 +189,12 @@ export default async function AdminCRMPage() {
                   </td>
                   <td className="p-4 text-right font-black text-foreground">
                     {formatCurrency(profile.total_spent_cents || 0)}
+                  </td>
+                  <td className="p-4 text-center">
+                    <DeleteUserButton 
+                      userId={profile.id} 
+                      userName={profile.user_metadata?.full_name || profile.email || 'Guest'} 
+                    />
                   </td>
                 </tr>
               );
