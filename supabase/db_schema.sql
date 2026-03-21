@@ -20,6 +20,7 @@ create table if not exists public.profiles (
   full_name text,
   creem_customer_id text unique,
   total_spent_cents bigint default 0,
+  notes text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -266,6 +267,7 @@ create table if not exists public.chats (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade not null,
   title text default 'New Conversation',
+  metadata text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -311,3 +313,23 @@ create policy "Users can view own chat messages"
 create policy "Users can create own chat messages"
   on public.chat_messages for insert
   with check (auth.uid() = user_id);
+
+-- ============================================================
+-- 9. Audit Logs
+-- ============================================================
+create table if not exists public.audit_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade not null,
+  action text not null,
+  metadata text,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_audit_logs_user_id on public.audit_logs(user_id);
+
+alter table public.audit_logs enable row level security;
+
+create policy "Admins can view all audit logs"
+  on public.audit_logs for select
+  to public
+  using (true);
