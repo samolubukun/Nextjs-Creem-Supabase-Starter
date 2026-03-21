@@ -314,7 +314,7 @@ export default async function DashboardPage() {
                   {creditTransactions.slice(0, 8).map((rawTx: any) => {
                     const tx = formatTransaction(rawTx);
                     return (
-                      <div key={tx.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 sm:p-6 rounded-[2rem] bg-secondary border border-border transition-all hover:bg-card hover:shadow-lg hover:border-primary/20 group gap-4 md:gap-6">
+                      <div key={tx.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 sm:p-6 rounded-[2rem] bg-background border border-border transition-all hover:bg-card hover:shadow-lg hover:border-primary/20 group gap-4 md:gap-6">
                          <div className="flex items-center gap-4 sm:gap-6 w-full">
                             <div className={cn("size-10 sm:size-12 rounded-2xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-110 shrink-0", tx.amount > 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive")}>
                                {tx.amount > 0 ? <Zap className="size-5 sm:size-6" /> : <Activity className="size-5 sm:size-6" />}
