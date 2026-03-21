@@ -1,11 +1,49 @@
 "use client";
 
-import * as React from 'react';
+import * as React from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Clock, Zap, ArrowUpRight, ArrowDownLeft, Activity, Loader2, ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Loader2, ArrowLeft, ArrowRight, Zap, Clock } from "lucide-react";
+
+// Guaranteed-colour badge that works regardless of Tailwind v4 CSS variable quirks
+function StatusBadge({ status }: { status: string }) {
+  const [isDark, setIsDark] = useState(false);
+  useEffect(() => {
+    const check = () => setIsDark(document.documentElement.classList.contains("dark"));
+    check();
+    const obs = new MutationObserver(check);
+    obs.observe(document.documentElement, { attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+
+  let style: React.CSSProperties;
+  if (status === "completed") {
+    style = isDark
+      ? { background: "rgba(6,78,59,0.3)", color: "#34d399", border: "1px solid #065f46" }
+      : { background: "#ffffff", color: "#047857", border: "1.5px solid #059669" };
+  } else if (status === "pending") {
+    style = isDark
+      ? { background: "rgba(120,53,15,0.3)", color: "#fbbf24", border: "1px solid #92400e" }
+      : { background: "#ffffff", color: "#b45309", border: "1.5px solid #d97706" };
+  } else {
+    style = isDark
+      ? { background: "transparent", color: "#94a3b8", border: "1px solid #1e293b" }
+      : { background: "#ffffff", color: "#64748b", border: "1.5px solid #e2e8f0" };
+  }
+
+  return (
+    <span
+      style={style}
+      className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full"
+    >
+      {status}
+    </span>
+  );
+}
+
+
 
 interface Transaction {
   id: string;
@@ -95,18 +133,7 @@ export function TransactionList() {
                   {tx?.created_at ? new Date(tx.created_at).toLocaleString() : "Syncing..."}
                 </td>
                 <td className="px-8 py-6">
-                  <span
-                    className={cn(
-                      "text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border",
-                      tx.status === "completed"
-                        ? "bg-white text-emerald-700 border-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800"
-                        : tx.status === "pending"
-                          ? "bg-white text-amber-700 border-amber-600 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800"
-                          : "bg-white dark:bg-secondary text-muted-foreground border-border"
-                    )}
-                  >
-                    {tx.status}
-                  </span>
+                  <StatusBadge status={tx.status} />
                 </td>
               </tr>
             ))}
@@ -144,18 +171,7 @@ export function TransactionList() {
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
                <div className="text-left">
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">State</p>
-                  <span
-                    className={cn(
-                      "inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border",
-                      tx.status === "completed"
-                        ? "bg-white text-emerald-700 border-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800"
-                        : tx.status === "pending"
-                          ? "bg-white text-amber-700 border-amber-600 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800"
-                          : "bg-white dark:bg-secondary text-muted-foreground border-border"
-                    )}
-                  >
-                    {tx.status}
-                  </span>
+                  <StatusBadge status={tx.status} />
                </div>
                <div className="text-right">
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">Plan</p>
