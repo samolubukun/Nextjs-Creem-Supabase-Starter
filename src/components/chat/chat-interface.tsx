@@ -43,13 +43,10 @@ export function ChatInterface() {
         .order("updated_at", { ascending: false });
 
       if (chatList) setChats(chatList);
-
-      let currentChatId = chatList?.[0]?.id || null;
-      setChatId(currentChatId);
-
-      if (currentChatId) {
-        await loadMessages(currentChatId);
-      }
+      
+      // Start with a fresh chat session by default
+      setChatId(null);
+      setMessages([]);
       setInitializing(false);
     }
 
