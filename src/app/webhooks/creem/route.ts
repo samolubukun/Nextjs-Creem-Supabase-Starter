@@ -2,7 +2,7 @@ import { Webhook } from "@creem_io/nextjs";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { buildSubscriptionUpdate, buildSubscriptionUpsert, handleCreditGrant } from "./handlers";
 import { sendPaymentConfirmationEmail } from "@/lib/email-service";
-import { getPlanName } from "@/lib/credits-config";
+import { getPlanName, PRODUCT_PRICE_MAPPING } from "@/lib/credits-config";
 
 export const POST = Webhook({
   webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
@@ -229,6 +229,13 @@ export const POST = Webhook({
     const productId = typeof event.product === "string" ? event.product : event.product.id;
     const productName = (typeof event.product === "string" ? undefined : event.product.name) || getPlanName(productId);
     
+    // Fetch current subscription to detect upgrade vs downgrade
+    const { data: existingSub } = await db
+      .from("subscriptions")
+      .select("user_id, creem_product_id, product_name")
+      .eq("creem_subscription_id", event.id)
+      .single();
+
     await db
       .from("subscriptions")
       .update({
@@ -240,6 +247,25 @@ export const POST = Webhook({
           : undefined,
       })
       .eq("creem_subscription_id", event.id);
+
+    // Record billing event for upgrade/downgrade notification
+    if (existingSub?.user_id && existingSub.creem_product_id !== productId) {
+      const previousName = existingSub.product_name || getPlanName(existingSub.creem_product_id) || "previous plan";
+      // Determine upgrade vs downgrade by checking plan tiers (higher price = upgrade)
+      const previousPrice = PRODUCT_PRICE_MAPPING[existingSub.creem_product_id] ?? 0;
+      const newPrice = PRODUCT_PRICE_MAPPING[productId] ?? 0;
+      const isUpgrade = newPrice >= previousPrice;
+
+      await db.from("billing_events").insert({
+        user_id: existingSub.user_id,
+        event_type: isUpgrade ? "subscription.upgraded" : "subscription.downgraded",
+        creem_subscription_id: event.id,
+        reason: isUpgrade
+          ? `Plan upgraded: ${previousName} → ${productName}`
+          : `Plan downgraded: ${previousName} → ${productName}`,
+        status: "open",
+      });
+    }
   },
 
   onRefundCreated: async (event) => {

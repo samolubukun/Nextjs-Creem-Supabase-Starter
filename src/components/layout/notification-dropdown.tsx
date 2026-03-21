@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Bell, Check, X, CreditCard, AlertCircle, Info } from "lucide-react";
+import { Bell, Check, X, CreditCard, AlertCircle, Info, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getNotificationsAction, markAsReadAction, markAllAsReadAction } from "@/app/actions/notifications";
@@ -61,6 +61,10 @@ export function NotificationDropdown() {
         return <X className="size-4 text-muted-foreground" />;
       case "subscription.past_due":
         return <AlertCircle className="size-4 text-destructive animate-pulse" />;
+      case "subscription.upgraded":
+        return <ArrowUpRight className="size-4 text-emerald-500" />;
+      case "subscription.downgraded":
+        return <ArrowDownLeft className="size-4 text-amber-500" />;
       default:
         return <Info className="size-4 text-blue-500" />;
     }
@@ -75,6 +79,8 @@ export function NotificationDropdown() {
       case "dispute": return "Dispute Opened";
       case "subscription.canceled": return "Subscription Cancelled";
       case "subscription.past_due": return "Payment Failed";
+      case "subscription.upgraded": return "Plan Upgraded ↑";
+      case "subscription.downgraded": return "Plan Downgraded ↓";
       default: return "System Notification";
     }
   };
