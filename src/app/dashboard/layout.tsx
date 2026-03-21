@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/layout/sidebar";
-import { Bell, Search, Zap } from "lucide-react";
+import { Search, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NotificationDropdown } from "@/components/layout/notification-dropdown";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -57,9 +58,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 <span className="text-[10px] font-black uppercase tracking-widest text-primary">Live Connection</span>
              </div>
 
-             <Button variant="ghost" size="icon" className="size-8 md:size-10 rounded-xl text-muted-foreground hover:text-foreground">
-                <Bell className="size-4 md:size-5" />
-             </Button>
+             <NotificationDropdown />
              
              <div className="h-6 md:h-8 w-px bg-border mx-1 md:mx-2" />
              
