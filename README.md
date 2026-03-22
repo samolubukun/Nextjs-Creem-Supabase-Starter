@@ -29,18 +29,77 @@ Open `http://localhost:3000`.
 
 ## What You Get
 
-- Auth flows: email/password + Google OAuth, callback exchange, protected dashboard
-- Pricing + checkout: product-based checkout with discount code support
-- Subscription lifecycle APIs: upgrade, cancel (scheduled or immediate), seat updates
-- Billing portal redirect endpoint
-- Creem webhook endpoint with idempotency storage and multi-event handling
-- Credit economy: wallet table, top-ups, spend endpoint, unlimited-credit sentinel
-- License endpoints: validate, activate, deactivate
-- Dashboard: plan status, credits, licenses, billing events, transaction history
-- Admin CRM: platform metrics, user list, delete user action (admin-gated)
-- AI assistant page with persisted chat sessions/messages and per-response credit deduction
-- Email workflows: welcome + payment confirmation
-- Blog scaffolding with MDX-compatible content pipeline
+- Authentication: email/password + Google OAuth, callback exchange, protected dashboard routes
+- Payments: Creem hosted checkout, optional discount codes, billing portal redirects
+- Subscriptions: upgrade/downgrade updates, scheduled or immediate cancellation, seat updates
+- Webhooks: idempotent Creem event handling for subscription lifecycle, refunds/disputes, and access hooks
+- Credits wallet: atomic spend via Postgres RPC, renewal grants, unlimited-credit sentinel support
+- Licenses: validate/activate/deactivate APIs plus dashboard license visibility
+- Admin CRM: user/revenue/license/chat metrics, billing event notifications, user deletion action
+- AI assistant: persisted chat sessions/messages with per-response credit deduction
+- Email workflows: welcome email and payment confirmation email
+- Blog support: MDX-compatible content pipeline and dynamic slug pages
+
+## Feature Breakdown
+
+### Authentication
+
+- Email/password signup and login
+- Google OAuth login/signup (`/callback` redirect flow)
+- Session-aware route protection via `src/proxy.ts` + Supabase SSR helpers
+
+### Payments and Subscriptions
+
+- Creem checkout session creation (`POST /api/checkout`)
+- Discount code support at checkout
+- Plan upgrades/downgrades (`POST /api/subscriptions/upgrade`)
+- Scheduled or immediate cancellation (`POST /api/subscriptions/cancel`)
+- Seat updates (`POST /api/subscriptions/update-seats`)
+- Billing portal access (`POST /api/billing-portal`)
+
+### Webhook Events (Implemented)
+
+Handled in `src/app/webhooks/creem/route.ts` via `@creem_io/nextjs`:
+
+- `checkout.completed`
+- `subscription.paid`
+- `subscription.canceled`
+- `subscription.expired`
+- `subscription.paused`
+- `subscription.trialing`
+- `subscription.past_due`
+- `subscription.update`
+- `refund.created`
+- `dispute.created`
+- `onGrantAccess` (access hook)
+- `onRevokeAccess` (access hook)
+
+Webhook processing includes HMAC verification through the SDK wrapper and idempotency tracking in `webhook_events`.
+
+### Credits Wallet
+
+- Balance tracked per user in `credits`
+- Immutable audit entries in `credit_transactions`
+- Atomic credit spending through `spend_credits` DB function (`POST /api/credits/spend`)
+- Unlimited credits sentinel for top-tier one-time plan
+
+### Licenses
+
+- `POST /api/licenses/validate`
+- `POST /api/licenses/activate`
+- `POST /api/licenses/deactivate`
+- License records stored in `licenses` and shown in dashboard licenses page
+
+### Discounts
+
+- Create and fetch discounts through `GET|POST /api/discounts`
+- Supports percentage or fixed discounts, duration modes, and product-scoped applies-to lists
+
+### Admin and Monitoring
+
+- Admin access via `ADMIN_EMAILS` / `ADMIN_EMAIL`
+- Dashboard admin page includes user, subscription, revenue, license, and activity stats
+- Billing event notifications for checkout, renewal, upgrade/downgrade, refunds, and disputes
 
 ## Architecture Overview
 
@@ -63,6 +122,31 @@ supabase/
   migrations/               drizzle-generated SQL migrations
 
 tests/                      Vitest coverage for validators/routes/helpers/components
+```
+
+Expanded route map:
+
+```text
+src/app/
+  (auth)/
+    login/page.tsx
+    signup/page.tsx
+    callback/route.ts
+  api/
+    checkout/route.ts
+    checkout/success/route.ts
+    billing-portal/route.ts
+    chat/route.ts
+    credits/route.ts
+    credits/spend/route.ts
+    discounts/route.ts
+    licenses/{activate,validate,deactivate}/route.ts
+    subscriptions/{upgrade,cancel,update-seats}/route.ts
+    transactions/route.ts
+    auth/welcome/route.ts
+  webhooks/creem/
+    route.ts
+    handlers.ts
 ```
 
 ## Core Implementation Flows
@@ -130,6 +214,29 @@ Common optional integrations:
 - `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL` (AI assistant)
 - `ADMIN_EMAILS` (admin dashboard authorization)
 - `NEXT_PUBLIC_CREEM_*_PRODUCT_ID` mappings (plan IDs)
+
+## Connecting Real Services
+
+1. Copy env template and set values:
+
+```bash
+cp .env.example .env.local
+```
+
+2. Supabase:
+   - Create project and apply `supabase/db_schema.sql` (or use Drizzle migrations)
+   - Configure Google provider and callback URL (`http://localhost:3000/callback` for local)
+   - Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`
+
+3. Creem:
+   - Create API key and webhook secret
+   - Configure products and map IDs into `NEXT_PUBLIC_CREEM_*_PRODUCT_ID`
+   - Point webhook to `https://your-domain.com/webhooks/creem`
+
+4. Optional providers:
+   - Resend (`RESEND_API_KEY`) for transactional email delivery
+   - PostHog keys for analytics
+   - LLM provider keys for AI assistant (`LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`)
 
 ## Drizzle Workflow
 
@@ -221,23 +328,6 @@ npm run check          # Biome + tsc + vitest
 5. Verify webhook signatures and event delivery in Creem dashboard.
 6. Run `npm run build` and `npm test` before shipping.
 7. Add at least one admin email in `ADMIN_EMAILS`.
-
-## Audit Notes (Current Repo Snapshot)
-
-Strengths:
-
-- Clear separation of server/client/admin Supabase clients
-- Webhook idempotency table and credit spend DB function are solid foundations
-- Good functional coverage across billing, credits, subscriptions, licenses, and admin UI
-- Route protection and auth redirects are already wired in `src/proxy.ts`
-
-Implementation risks to review before production:
-
-- `billing_events.event_type` SQL constraint currently allows only `refund` and `dispute`, while webhook code inserts more event types; align schema with runtime event set
-- `POST /api/auth/welcome` can be called without auth/rate limiting; lock this down to avoid abuse
-- `POST /api/chat` deducts credits with a direct update (non-atomic); race-safe RPC approach would be safer under concurrent requests
-- Test suite is broad but many tests are validator/unit-oriented; add higher-fidelity integration tests for critical payment/chat flows
-- Repository currently has many pre-existing Biome/style violations (`npm run check` fails); a formatting/lint baseline pass is recommended
 
 ## License
 
