@@ -111,9 +111,10 @@ If all pass, you are ready to deploy.
 </table>
 
 <img width="2560" height="1164" alt="Screenshot (656)" src="https://github.com/user-attachments/assets/cef95f10-6a2b-4f94-8a0b-7f8c23732568" />
+
 <table>
   <tr>
-    <td><img width="500" alt="Screenshot (656)" src="https://github.com/user-attachments/assets/cef95f10-6a2b-4f94-8a0b-7f8c23732568" /></td>
+    <td><img width="500" alt="screencapture-saasxcreem-vercel-app-pricing-2026-03-21-22_03_27" src="https://github.com/user-attachments/assets/41678062-6299-4b82-9c45-a00f3ff16993" /></td>
     <td><img width="500" alt="screencapture-saasxcreem-vercel-app-pricing-2026-03-21-22_03_50" src="https://github.com/user-attachments/assets/113ec50b-5912-4e7c-a506-832fb0d55bd5" /></td>
   </tr>
 </table>
