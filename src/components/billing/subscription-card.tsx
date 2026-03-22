@@ -74,7 +74,7 @@ export function SubscriptionCard({ subscription }: { subscription: Subscription 
           </span>
           <span
             className={cn(
-              "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border max-w-[58%] text-right whitespace-normal break-all leading-tight",
+              "px-3 py-1 rounded-full text-[9px] md:text-[8px] font-black uppercase tracking-normal border max-w-[58%] text-right whitespace-normal break-all leading-tight",
               statusColors[subscription.status] || statusColors.expired,
             )}
           >
