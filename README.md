@@ -4,6 +4,8 @@ Production-focused SaaS boilerplate built with Next.js 16, Supabase, and Creem.
 
 It ships with authentication, subscriptions, credits, licensing, admin tooling, email workflows, and an AI chat surface so you can start from a real billing-ready foundation instead of a landing-page template.
 
+Creem products, pricing, and billing behavior depend on your own Creem account configuration. This repository provides a production-ready integration pattern and example setup for this boilerplate.
+
 ## Quick Start
 
 ```bash
@@ -39,6 +41,64 @@ Open `http://localhost:3000`.
 - AI assistant: persisted chat sessions/messages with per-response credit deduction
 - Email workflows: welcome email and payment confirmation email
 - Blog support: MDX-compatible content pipeline and dynamic slug pages
+
+## Setup Guide
+
+### 1) Install and run locally
+
+```bash
+git clone https://github.com/samuel-olubukun/Nextjs-Creem-Starter saasxcreem
+cd saasxcreem
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+App runs at `http://localhost:3000`.
+
+### 2) Configure Supabase
+
+- Create a Supabase project.
+- Set these env values in `.env.local`:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+- Initialize database:
+  - Option A (recommended for quick setup): apply `supabase/db_schema.sql`
+  - Option B: use Drizzle migration flow (`npx drizzle-kit generate` then `npx drizzle-kit migrate`)
+- In Supabase Auth, enable Google provider and add callback URL:
+  - `http://localhost:3000/callback`
+
+### 3) Configure Creem
+
+- Create products and copy their IDs into:
+  - `NEXT_PUBLIC_CREEM_STARTER_PRODUCT_ID`
+  - `NEXT_PUBLIC_CREEM_PRO_PRODUCT_ID`
+  - `NEXT_PUBLIC_CREEM_ENTERPRISE_PRODUCT_ID`
+  - `NEXT_PUBLIC_CREEM_PRO_MAX_PRODUCT_ID` (optional one-time unlimited tier)
+- Set:
+  - `CREEM_API_KEY`
+  - `CREEM_WEBHOOK_SECRET`
+- Configure webhook endpoint:
+  - Local testing: use tunnel URL + `/webhooks/creem`
+  - Production: `https://your-domain.com/webhooks/creem`
+
+### 4) Configure optional integrations
+
+- `RESEND_API_KEY` for welcome/payment emails
+- `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL` for AI assistant
+- `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` for analytics
+- `ADMIN_EMAILS` (or `ADMIN_EMAIL`) for admin dashboard access
+
+### 5) Verify everything before deploy
+
+```bash
+npm run check
+npm run test:coverage
+npm run build
+```
+
+If all pass, you are ready to deploy.
 
 ## Feature Breakdown
 
@@ -193,28 +253,6 @@ src/app/
 - Chat sessions/messages persist in `chats` and `chat_messages`
 - 1 credit deducted per response for non-unlimited users
 
-## Environment Variables
-
-Use `.env.example` as source of truth.
-
-Required for production baseline:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `CREEM_API_KEY`
-- `CREEM_WEBHOOK_SECRET`
-- `NEXT_PUBLIC_APP_URL`
-
-Common optional integrations:
-
-- `DATABASE_URL` (drizzle/migrations)
-- `RESEND_API_KEY` (transactional email delivery)
-- `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` (analytics)
-- `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL` (AI assistant)
-- `ADMIN_EMAILS` (admin dashboard authorization)
-- `NEXT_PUBLIC_CREEM_*_PRODUCT_ID` mappings (plan IDs)
-
 ## Connecting Real Services
 
 1. Copy env template and set values:
@@ -242,9 +280,9 @@ cp .env.example .env.local
 
 This boilerplate supports schema-first Drizzle migrations from `src/db/schema.ts`.
 
-### Fresh migration baseline
+### Generate and apply migrations
 
-If you intentionally removed old migration files and want a clean baseline:
+Use this flow whenever schema changes are made in `src/db/schema.ts`:
 
 ```bash
 # 1) Generate SQL migration files from schema
