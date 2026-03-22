@@ -4,33 +4,33 @@
   /* Core Palette: Slate 50 + Warm Peach */
   --background: #f8fafc; /* Slate 50 */
   --foreground: #020617; /* Slate 950 */
-  
+
   --card: #ffffff;
   --card-foreground: #020617;
-  
+
   --popover: #ffffff;
   --popover-foreground: #020617;
-  
+
   --primary: #ffbe98; /* Warm Peach */
   --primary-foreground: #471a00;
-  
+
   --secondary: #f1f5f9; /* Slate 100 */
   --secondary-foreground: #0f172a;
-  
+
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  
+
   --accent: #fdf2f8;
   --accent-foreground: #ffbe98;
-  
+
   --destructive: #ef4444;
   --destructive-foreground: #f8fafc;
   --destructive-soft: #ff6b6b; /* Softer, less vivid red */
-  
+
   --border: #e2e8f0;
   --input: #e2e8f0;
   --ring: #ffbe98;
-  
+
   --logo-invert: invert(0);
   --radius: 2.5rem;
 
@@ -46,33 +46,33 @@
 .dark {
   --background: #020617; /* Slate 950 */
   --foreground: #f8fafc; /* Slate 50 */
-  
-  --card: #0f172a;       /* Slate 900 */
+
+  --card: #0f172a; /* Slate 900 */
   --card-foreground: #f8fafc;
-  
+
   --popover: #0f172a;
   --popover-foreground: #f8fafc;
-  
-  --primary: #ffbe98;    /* Keep Warm Peach */
+
+  --primary: #ffbe98; /* Keep Warm Peach */
   --primary-foreground: #471a00;
-  
-  --secondary: #1e293b;  /* Slate 800 */
+
+  --secondary: #1e293b; /* Slate 800 */
   --secondary-foreground: #f1f5f9;
-  
+
   --muted: #1e293b;
   --muted-foreground: #94a3b8; /* Slate 400 */
-  
-  --accent: #1e1b19;     /* Very dark warm brown-black */
+
+  --accent: #1e1b19; /* Very dark warm brown-black */
   --accent-foreground: #ffbe98;
-  
+
   --destructive: #7f1d1d; /* Dark red */
   --destructive-foreground: #f8fafc;
-  
+
   --border: #1e293b;
   --input: #1e293b;
   --logo-invert: invert(1);
   --ring: #ffbe98;
-  
+
   --border-bold: #ffffff;
 }
 
@@ -97,10 +97,10 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  
+
   --radius-xl: var(--radius);
   --radius-2xl: calc(var(--radius) + 0.5rem);
-  
+
   --font-sans: var(--font-bricolage-grotesque);
   --font-mono: var(--font-jetbrains-mono);
 }
@@ -113,20 +113,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-
 @utility btn-disabled {
   @apply opacity-50;
 }
 
 @layer utilities {
   .fiery-text-effect {
-    background: linear-gradient(
-      to top,
-      #000000 0%,
-      #ff4d00 30%,
-      #ffbe98 60%,
-      #ffbe98 100%
-    );
+    background: linear-gradient(to top, #000000 0%, #ff4d00 30%, #ffbe98 60%, #ffbe98 100%);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
@@ -136,11 +129,12 @@ body {
   }
 
   @keyframes fiery-pulse {
-    0%, 100% { 
+    0%,
+    100% {
       filter: drop-shadow(0 10px 20px rgba(255, 120, 0, 0.2));
       transform: scale(1);
     }
-    50% { 
+    50% {
       filter: drop-shadow(0 15px 30px rgba(255, 190, 152, 0.4));
       transform: scale(1.02);
     }

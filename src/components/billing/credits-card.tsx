@@ -1,9 +1,7 @@
 "use client";
 
-import * as React from "react";
-import { Zap, Activity } from "lucide-react";
+import { Zap } from "lucide-react";
 import { isUnlimited } from "@/app/api/credits/helpers";
-import { cn } from "@/lib/utils";
 
 interface CreditsCardProps {
   balance: number;
@@ -19,13 +17,15 @@ export function CreditsCard({ balance }: CreditsCardProps) {
               <Zap className="size-5" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Resource Balance</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+                Resource Balance
+              </p>
               <h2 className="text-3xl sm:text-4xl font-black tracking-tighter uppercase italic text-foreground">
                 {isUnlimited(balance) ? "Unlimited" : balance.toLocaleString()}
               </h2>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground pb-4 border-b border-border">
               <span>System Activity</span>

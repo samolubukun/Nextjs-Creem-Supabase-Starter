@@ -1,14 +1,12 @@
 "use client";
 
-import * as React from 'react';
-import Link from "next/link";
 import { motion } from "framer-motion";
+import { ShieldCheck } from "lucide-react";
+import Link from "next/link";
 import { PricingSection } from "@/components/billing/pricing-section";
-import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/lib/currency";
-import { LandingHeader } from "@/components/layout/landing-header";
 import { LandingFooter } from "@/components/layout/landing-footer";
-import { Github, ShieldCheck } from "lucide-react";
+import { LandingHeader } from "@/components/layout/landing-header";
+import { formatCurrency } from "@/lib/currency";
 
 // Creem test product IDs — replace with production IDs before going live
 const plans = [
@@ -20,10 +18,10 @@ const plans = [
     productId: process.env.NEXT_PUBLIC_CREEM_STARTER_PRODUCT_ID ?? "prod_starter",
     features: [
       "100 AI credits per month",
-      "1 AI Workspace", 
-      "Basic content generation", 
-      "Standard voice cloning (1 voice)", 
-      "Email support"
+      "1 AI Workspace",
+      "Basic content generation",
+      "Standard voice cloning (1 voice)",
+      "Email support",
     ],
   },
   {
@@ -116,24 +114,45 @@ export default function PricingPage() {
           <div className="max-w-7xl mx-auto px-4 md:px-6">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">
-                <Link href="/" className="text-2xl font-black tracking-tighter text-foreground uppercase inline-block">SAASXCREEM</Link>
+                <Link
+                  href="/"
+                  className="text-2xl font-black tracking-tighter text-foreground uppercase inline-block"
+                >
+                  SAASXCREEM
+                </Link>
                 <div className="flex items-center gap-3">
-                   <ShieldCheck className="size-6 text-success" />
-                   <h3 className="text-3xl font-black tracking-tighter uppercase text-foreground">Enterprise Grade Security</h3>
+                  <ShieldCheck className="size-6 text-success" />
+                  <h3 className="text-3xl font-black tracking-tighter uppercase text-foreground">
+                    Enterprise Grade Security
+                  </h3>
                 </div>
                 <p className="text-muted-foreground font-medium text-lg leading-relaxed max-w-xl">
-                  All payments are processed securely by <a href="https://creem.io" className="text-primary font-black hover:underline uppercase tracking-tight">Creem</a>.
-                  We handle global tax compliance, billing cycles, and subscription management so you don't have to.
+                  All payments are processed securely by{" "}
+                  <a
+                    href="https://creem.io"
+                    className="text-primary font-black hover:underline uppercase tracking-tight"
+                  >
+                    Creem
+                  </a>
+                  . We handle global tax compliance, billing cycles, and subscription management so
+                  you don't have to.
                 </p>
               </div>
               <div className="flex flex-col gap-6">
-                 <div className="p-8 bg-card rounded-3xl border border-border">
-                    <p className="text-sm font-bold text-foreground italic leading-relaxed">"The developer experience is unmatched. We shipped our MVP in 3 days. The Command Center dashboard gives us visibility we never had before."</p>
-                    <span className="text-xs font-black text-primary uppercase mt-6 block tracking-widest">— Early Tech Adopter</span>
-                 </div>
-                 <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 text-center">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">14-Day Free Trial included on all plans</span>
-                 </div>
+                <div className="p-8 bg-card rounded-3xl border border-border">
+                  <p className="text-sm font-bold text-foreground italic leading-relaxed">
+                    "The developer experience is unmatched. We shipped our MVP in 3 days. The
+                    Command Center dashboard gives us visibility we never had before."
+                  </p>
+                  <span className="text-xs font-black text-primary uppercase mt-6 block tracking-widest">
+                    — Early Tech Adopter
+                  </span>
+                </div>
+                <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 text-center">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-primary">
+                    14-Day Free Trial included on all plans
+                  </span>
+                </div>
               </div>
             </div>
           </div>

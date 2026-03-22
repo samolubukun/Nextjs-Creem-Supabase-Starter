@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { formatTransaction } from "@/app/api/transactions/helpers";
 
 describe("formatTransaction", () => {
@@ -13,7 +13,7 @@ describe("formatTransaction", () => {
     expect(result.displayAmount).toBe("$29.00");
   });
 
-  it("formats EUR amount correctly", () => {
+  it("formats cent amounts using configured app currency", () => {
     const result = formatTransaction({
       id: "tx_2",
       amount: 990,
@@ -21,7 +21,7 @@ describe("formatTransaction", () => {
       status: "completed",
       created_at: "2026-03-01T00:00:00Z",
     });
-    expect(result.displayAmount).toBe("€9.90");
+    expect(result.displayAmount).toBe("$9.90");
   });
 
   it("defaults unknown currency to USD", () => {

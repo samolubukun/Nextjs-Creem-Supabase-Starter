@@ -6,12 +6,14 @@ import { createSupabaseServer } from "@/lib/supabase/server";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
 export async function deleteUserAction(userId: string) {
   const authSupabase = await createSupabaseServer();
-  const { data: { user: adminUser } } = await authSupabase.auth.getUser();
+  const {
+    data: { user: adminUser },
+  } = await authSupabase.auth.getUser();
 
   // 1. Verify the requester is actually an admin
   const adminEmails = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || "")

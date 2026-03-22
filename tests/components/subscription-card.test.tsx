@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { SubscriptionCard } from "@/components/subscription-card";
+import { SubscriptionCard } from "@/components/billing/subscription-card";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -17,12 +17,12 @@ const mockSub = {
 describe("SubscriptionCard", () => {
   it("shows No active subscription. when null", () => {
     render(<SubscriptionCard subscription={null} />);
-    expect(screen.getByText("No active subscription.")).toBeTruthy();
+    expect(screen.getByText("No active subscription detected.")).toBeTruthy();
   });
 
   it("shows View Plans link when no subscription", () => {
     render(<SubscriptionCard subscription={null} />);
-    const link = screen.getByRole("link", { name: /view plans/i });
+    const link = screen.getByRole("link", { name: /establish system plan/i });
     expect(link).toBeTruthy();
   });
 
@@ -48,11 +48,11 @@ describe("SubscriptionCard", () => {
 
   it("shows billing date when present", () => {
     render(<SubscriptionCard subscription={mockSub} />);
-    expect(screen.getByText("Next billing")).toBeTruthy();
+    expect(screen.getByText("Next Payment Date")).toBeTruthy();
   });
 
   it("shows Manage Billing button", () => {
     render(<SubscriptionCard subscription={mockSub} />);
-    expect(screen.getByRole("button", { name: /manage billing/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /secure billing portal/i })).toBeTruthy();
   });
 });

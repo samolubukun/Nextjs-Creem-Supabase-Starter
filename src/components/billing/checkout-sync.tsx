@@ -1,22 +1,19 @@
 "use client";
 
-import * as React from 'react';
-
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Loader2 } from "lucide-react";
 
 export function CheckoutSync() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const polling = useRef(false);
-  const [status, setStatus] = useState<"idle" | "waiting" | "done">("idle");
+  const [_status, setStatus] = useState<"idle" | "waiting" | "done">("idle");
 
   useEffect(() => {
     if (polling.current) return;
     const checkout = searchParams.get("checkout");
     const sync = searchParams.get("sync");
-    
+
     if (checkout !== "success" && sync !== "success") return;
 
     polling.current = true;
@@ -37,4 +34,3 @@ export function CheckoutSync() {
   // and does not render any visible UI to avoid layout shifts.
   return null;
 }
-

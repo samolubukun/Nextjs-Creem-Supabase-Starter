@@ -1,10 +1,9 @@
 "use client";
 
-import * as React from 'react';
+import { AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, ChevronRight, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CancelDialogProps {
@@ -60,55 +59,85 @@ export function CancelDialog({ subscriptionId, currentPeriodEnd }: CancelDialogP
   return (
     <div className="rounded-[2rem] border-2 border-destructive-soft/20 bg-destructive-soft/5 p-8 space-y-6 animate-in fade-in zoom-in duration-300">
       <div className="flex items-center gap-4">
-         <div className="size-10 rounded-xl bg-destructive-soft text-white flex items-center justify-center shadow-lg">
-            <AlertTriangle className="size-5" />
-         </div>
-         <div className="text-left">
-            <p className="text-sm font-black uppercase tracking-tight text-foreground">Cancel Subscription?</p>
-            <p className="text-[10px] font-bold uppercase text-muted-foreground opacity-70">Confirm your cancellation request</p>
-         </div>
+        <div className="size-10 rounded-xl bg-destructive-soft text-white flex items-center justify-center shadow-lg">
+          <AlertTriangle className="size-5" />
+        </div>
+        <div className="text-left">
+          <p className="text-sm font-black uppercase tracking-tight text-foreground">
+            Cancel Subscription?
+          </p>
+          <p className="text-[10px] font-bold uppercase text-muted-foreground opacity-70">
+            Confirm your cancellation request
+          </p>
+        </div>
       </div>
 
       <div className="space-y-3">
-        <label 
+        <button
+          type="button"
           className={cn(
             "flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer group",
-            mode === "scheduled" ? "border-destructive-soft bg-white shadow-md" : "border-slate-100 bg-slate-50/50 hover:border-slate-200"
+            mode === "scheduled"
+              ? "border-destructive-soft bg-white shadow-md"
+              : "border-slate-100 bg-slate-50/50 hover:border-slate-200",
           )}
           onClick={() => setMode("scheduled")}
         >
           <div className="flex items-center gap-3">
-             <div className={cn("size-4 rounded-full border-2 flex items-center justify-center transition-all", mode === "scheduled" ? "border-destructive-soft bg-destructive-soft" : "border-slate-300")}>
-                {mode === "scheduled" && <div className="size-1.5 rounded-full bg-white" />}
-             </div>
-             <span className="text-xs font-black uppercase tracking-tight text-foreground">End of Billing Cycle</span>
+            <div
+              className={cn(
+                "size-4 rounded-full border-2 flex items-center justify-center transition-all",
+                mode === "scheduled"
+                  ? "border-destructive-soft bg-destructive-soft"
+                  : "border-slate-300",
+              )}
+            >
+              {mode === "scheduled" && <div className="size-1.5 rounded-full bg-white" />}
+            </div>
+            <span className="text-xs font-black uppercase tracking-tight text-foreground">
+              End of Billing Cycle
+            </span>
           </div>
           {currentPeriodEnd && (
-             <span className="text-[10px] font-bold text-muted-foreground">{new Date(currentPeriodEnd).toLocaleDateString()}</span>
+            <span className="text-[10px] font-bold text-muted-foreground">
+              {new Date(currentPeriodEnd).toLocaleDateString()}
+            </span>
           )}
-        </label>
-        
-        <label 
+        </button>
+
+        <button
+          type="button"
           className={cn(
             "flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer group",
-            mode === "immediate" ? "border-destructive-soft bg-white shadow-md" : "border-slate-100 bg-slate-50/50 hover:border-slate-200"
+            mode === "immediate"
+              ? "border-destructive-soft bg-white shadow-md"
+              : "border-slate-100 bg-slate-50/50 hover:border-slate-200",
           )}
           onClick={() => setMode("immediate")}
         >
           <div className="flex items-center gap-3">
-             <div className={cn("size-4 rounded-full border-2 flex items-center justify-center transition-all", mode === "immediate" ? "border-destructive-soft bg-destructive-soft" : "border-slate-300")}>
-                {mode === "immediate" && <div className="size-1.5 rounded-full bg-white" />}
-             </div>
-             <span className="text-xs font-black uppercase tracking-tight text-foreground">Immediate Cancellation</span>
+            <div
+              className={cn(
+                "size-4 rounded-full border-2 flex items-center justify-center transition-all",
+                mode === "immediate"
+                  ? "border-destructive-soft bg-destructive-soft"
+                  : "border-slate-300",
+              )}
+            >
+              {mode === "immediate" && <div className="size-1.5 rounded-full bg-white" />}
+            </div>
+            <span className="text-xs font-black uppercase tracking-tight text-foreground">
+              Immediate Cancellation
+            </span>
           </div>
           <span className="text-[10px] font-bold text-destructive-soft uppercase">Notice</span>
-        </label>
+        </button>
       </div>
 
       {error && (
-         <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-[10px] font-black uppercase tracking-tight text-center">
-            {error}
-         </div>
+        <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-[10px] font-black uppercase tracking-tight text-center">
+          {error}
+        </div>
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">

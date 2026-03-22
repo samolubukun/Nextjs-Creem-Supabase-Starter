@@ -1,9 +1,9 @@
 "use client";
 
-import * as React from "react";
-import { Moon, Sun, Monitor } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { motion, AnimatePresence } from "framer-motion";
+import * as React from "react";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -30,6 +30,7 @@ export function ThemeToggle() {
 
   return (
     <button
+      type="button"
       onClick={cycleTheme}
       className="p-2 rounded-full hover:bg-muted transition-colors flex items-center justify-center relative overflow-hidden group border border-transparent hover:border-border"
       aria-label="Toggle theme"
@@ -45,10 +46,10 @@ export function ThemeToggle() {
           {getIcon()}
         </motion.div>
       </AnimatePresence>
-      
+
       {/* Tooltip hint on hover */}
       <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-border shadow-sm">
-        {theme === 'system' ? 'System Theme' : theme === 'light' ? 'Light Mode' : 'Dark Mode'}
+        {theme === "system" ? "System Theme" : theme === "light" ? "Light Mode" : "Dark Mode"}
       </span>
     </button>
   );

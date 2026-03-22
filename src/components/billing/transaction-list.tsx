@@ -1,9 +1,9 @@
 "use client";
 
-import * as React from "react";
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Clock, Zap, ArrowUpRight, ArrowDownLeft, Activity, Loader2, ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, Loader2, Zap } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import type * as React from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -43,8 +43,6 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-
-
 interface Transaction {
   id: string;
   amount: number;
@@ -56,28 +54,30 @@ interface Transaction {
 }
 
 export function TransactionList() {
-  const searchParams = useSearchParams();
+  useSearchParams();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [page, searchParams]);
-
-  async function fetchTransactions() {
+  const fetchTransactions = useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/transactions?page=${page}`);
     const data = await res.json();
     setTransactions(data.transactions ?? []);
     setLoading(false);
-  }
+  }, [page]);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   if (loading) {
     return (
       <div className="p-20 flex flex-col items-center justify-center text-muted-foreground gap-4">
         <Loader2 className="size-8 animate-spin text-primary" />
-        <p className="text-xs font-black uppercase tracking-widest text-primary">Scanning Ledger...</p>
+        <p className="text-xs font-black uppercase tracking-widest text-primary">
+          Scanning Ledger...
+        </p>
       </div>
     );
   }
@@ -86,7 +86,9 @@ export function TransactionList() {
     return (
       <div className="text-center py-20 px-8">
         <Clock className="size-12 text-slate-200 dark:text-slate-800 mx-auto mb-4" />
-        <p className="text-sm font-black uppercase tracking-tight text-muted-foreground">No transactions recorded in the system.</p>
+        <p className="text-sm font-black uppercase tracking-tight text-muted-foreground">
+          No transactions recorded in the system.
+        </p>
       </div>
     );
   }
@@ -109,20 +111,28 @@ export function TransactionList() {
             {transactions.map((tx) => (
               <tr key={tx.id} className="group hover:bg-secondary/20 transition-colors">
                 <td className="px-8 py-6">
-                   <div className="flex items-center gap-3">
-                      <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                         <Zap className="size-4" />
-                      </div>
-                      <span className="text-xs font-black uppercase tracking-tight text-foreground">{tx.description || (tx.amount > 0 ? "Resource Induction" : "System Expenditure")}</span>
-                   </div>
+                  <div className="flex items-center gap-3">
+                    <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                      <Zap className="size-4" />
+                    </div>
+                    <span className="text-xs font-black uppercase tracking-tight text-foreground">
+                      {tx.description ||
+                        (tx.amount > 0 ? "Resource Induction" : "System Expenditure")}
+                    </span>
+                  </div>
                 </td>
                 <td className="px-8 py-6 text-right">
-                  <span className={cn(
-                    "text-lg font-black tracking-tighter", 
-                    (tx.amount > 0 || tx.amount === -1) ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                  )}>
-                       {tx.amount > 0 ? "+" : ""}{tx.displayAmount}
-                    </span>
+                  <span
+                    className={cn(
+                      "text-lg font-black tracking-tighter",
+                      tx.amount > 0 || tx.amount === -1
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-rose-600 dark:text-rose-400",
+                    )}
+                  >
+                    {tx.amount > 0 ? "+" : ""}
+                    {tx.displayAmount}
+                  </span>
                 </td>
                 <td className="px-8 py-6 text-[10px] font-black uppercase tracking-widest">
                   <span className="px-3 py-1 bg-background dark:bg-secondary rounded-full border border-border text-foreground">
@@ -144,53 +154,72 @@ export function TransactionList() {
       {/* Mobile Card View */}
       <div className="md:hidden divide-y divide-border bg-card">
         {transactions.map((tx) => (
-          <div key={tx.id} className="p-6 space-y-4 hover:bg-secondary active:bg-secondary/80 transition-colors">
+          <div
+            key={tx.id}
+            className="p-6 space-y-4 hover:bg-secondary active:bg-secondary/80 transition-colors"
+          >
             <div className="flex justify-between items-start gap-4">
               <div className="flex items-start gap-3">
                 <div className="size-8 mt-0.5 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
                   <Zap className="size-4" />
                 </div>
                 <div className="space-y-1 text-left">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Descriptor</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Descriptor
+                  </p>
                   <p className="text-xs font-black uppercase leading-tight tracking-tight text-foreground">
-                    {tx.description || (tx.amount > 0 ? "Resource Induction" : "System Expenditure")}
+                    {tx.description ||
+                      (tx.amount > 0 ? "Resource Induction" : "System Expenditure")}
                   </p>
                 </div>
               </div>
               <div className="text-right space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Amount</p>
-                <p className={cn(
-                  "text-lg font-black tracking-tighter leading-none", 
-                  (tx.amount > 0 || tx.amount === -1) ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                )}>
-                  {tx.amount > 0 ? "+" : ""}{tx.displayAmount}
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  Amount
+                </p>
+                <p
+                  className={cn(
+                    "text-lg font-black tracking-tighter leading-none",
+                    tx.amount > 0 || tx.amount === -1
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-rose-600 dark:text-rose-400",
+                  )}
+                >
+                  {tx.amount > 0 ? "+" : ""}
+                  {tx.displayAmount}
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
-               <div className="text-left">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">State</p>
-                  <StatusBadge status={tx.status} />
-               </div>
-               <div className="text-right">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">Plan</p>
-                   <span className="inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-background dark:bg-secondary rounded-full border border-border text-foreground">
-                     {tx.planType}
-                   </span>
-                </div>
+              <div className="text-left">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">
+                  State
+                </p>
+                <StatusBadge status={tx.status} />
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">
+                  Plan
+                </p>
+                <span className="inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-background dark:bg-secondary rounded-full border border-border text-foreground">
+                  {tx.planType}
+                </span>
+              </div>
             </div>
             <div className="pt-2 text-right">
-               <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter">
-                  {tx?.created_at ? new Date(tx.created_at).toLocaleString() : "Syncing..."}
-               </p>
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter">
+                {tx?.created_at ? new Date(tx.created_at).toLocaleString() : "Syncing..."}
+              </p>
             </div>
           </div>
         ))}
       </div>
 
       <div className="flex items-center justify-between p-8 border-t border-border bg-background dark:bg-secondary/30">
-        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Page {page}</p>
+        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          Page {page}
+        </p>
         <div className="flex gap-3">
           <Button
             variant="outline"

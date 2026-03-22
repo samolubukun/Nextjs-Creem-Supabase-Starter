@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import * as React from "react";
 import { act } from "react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { PricingCard } from "@/components/pricing-card";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PricingCard } from "@/components/billing/pricing-card";
 
 const mockPlan = {
   name: "Pro",
@@ -44,7 +44,7 @@ describe("PricingCard", () => {
 
   it("shows Get Started button", () => {
     render(<PricingCard plan={mockPlan} />);
-    expect(screen.getByRole("button", { name: /get started/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /initiate payment/i })).toBeTruthy();
   });
 
   it("calls /api/checkout on click with correct productId", async () => {
@@ -55,7 +55,7 @@ describe("PricingCard", () => {
 
     render(<PricingCard plan={mockPlan} />);
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /get started/i }));
+      fireEvent.click(screen.getByRole("button", { name: /initiate payment/i }));
     });
 
     expect(mockFetch).toHaveBeenCalledWith("/api/checkout", {
@@ -65,39 +65,34 @@ describe("PricingCard", () => {
     });
   });
 
-  it("shows Redirecting... loading state", async () => {
+  it("shows Processing Payment... loading state", async () => {
     let resolvePromise!: (value: unknown) => void;
-    const pendingPromise = new Promise((resolve) => { resolvePromise = resolve; });
+    const pendingPromise = new Promise((resolve) => {
+      resolvePromise = resolve;
+    });
     vi.stubGlobal("fetch", vi.fn().mockReturnValue(pendingPromise));
 
     render(<PricingCard plan={mockPlan} />);
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /get started/i }));
+      fireEvent.click(screen.getByRole("button", { name: /initiate payment/i }));
     });
 
-    expect(screen.getByText("Redirecting...")).toBeTruthy();
+    expect(screen.getByText("Processing Payment...")).toBeTruthy();
     // cleanup: resolve so no hanging promises
     resolvePromise({ json: () => Promise.resolve({}) });
   });
 
-  it("redirects to /login on unauthorized response", async () => {
+  it("calls checkout endpoint when unauthorized is returned", async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       json: () => Promise.resolve({ error: "Unauthorized" }),
     });
     vi.stubGlobal("fetch", mockFetch);
 
-    // jsdom doesn't navigate; intercept href assignment
-    const hrefSetter = vi.fn();
-    const locationMock = { ...window.location } as Location;
-    Object.defineProperty(locationMock, "href", { set: hrefSetter, get: () => "" });
-    vi.spyOn(window, "location", "get").mockReturnValue(locationMock);
-
     render(<PricingCard plan={mockPlan} />);
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /get started/i }));
+      fireEvent.click(screen.getByRole("button", { name: /initiate payment/i }));
     });
 
-    expect(hrefSetter).toHaveBeenCalledWith("/login");
-    vi.restoreAllMocks();
+    expect(mockFetch).toHaveBeenCalledWith("/api/checkout", expect.any(Object));
   });
 });

@@ -1,13 +1,13 @@
-import { getBlogPostBySlug, getBlogPosts } from '@/lib/blog';
-import { MDXRemote } from 'next-mdx-remote/rsc';
-import { notFound } from 'next/navigation';
-import { Calendar, User, ArrowLeft, Clock } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { LandingHeader } from '@/components/layout/landing-header';
-import { LandingFooter } from '@/components/layout/landing-footer';
-import { Callout } from '@/components/blog/callout';
-import rehypePrettyCode from 'rehype-pretty-code';
+import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { MDXRemote, type MDXRemoteProps } from "next-mdx-remote/rsc";
+import rehypePrettyCode from "rehype-pretty-code";
+import { Callout } from "@/components/blog/callout";
+import { LandingFooter } from "@/components/layout/landing-footer";
+import { LandingHeader } from "@/components/layout/landing-header";
+import { Button } from "@/components/ui/button";
+import { getBlogPostBySlug, getBlogPosts } from "@/lib/blog";
 
 const components = {
   Callout,
@@ -20,12 +20,14 @@ const mdxOptions = {
       [
         rehypePrettyCode,
         {
-          theme: 'one-dark-pro',
+          theme: "one-dark-pro",
         },
       ],
     ],
   },
 };
+
+type MdxOptions = NonNullable<MDXRemoteProps["options"]>;
 
 export async function generateStaticParams() {
   const posts = await getBlogPosts();
@@ -45,7 +47,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title: post.metadata.title,
       description: post.metadata.summary,
-      type: 'article',
+      type: "article",
       publishedTime: post.metadata.publishedAt,
     },
   };
@@ -65,7 +67,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <main className="flex-1 pt-24 pb-20 px-0">
         <article className="max-w-3xl mx-auto px-4 md:px-8">
           <Link href="/blog">
-            <Button variant="ghost" size="sm" className="mb-8 font-black uppercase tracking-widest text-xs gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mb-8 font-black uppercase tracking-widest text-xs gap-2"
+            >
               <ArrowLeft className="size-3" /> Back to Journal
             </Button>
           </Link>
@@ -90,18 +96,20 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             </p>
           </div>
 
-          <div className="prose prose-invert max-w-none 
+          <div
+            className="prose prose-invert max-w-none 
             prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tighter
             prose-p:text-lg prose-p:leading-relaxed prose-p:text-muted-foreground
             prose-strong:text-foreground prose-strong:font-black
             prose-code:text-primary prose-pre:bg-card/50 prose-pre:backdrop-blur-sm prose-pre:border prose-pre:border-border/50
             prose-pre:overflow-x-auto prose-pre:w-full
             prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-            prose-img:rounded-2xl prose-img:border prose-img:border-border/50">
-            <MDXRemote 
-              source={post.content} 
+            prose-img:rounded-2xl prose-img:border prose-img:border-border/50"
+          >
+            <MDXRemote
+              source={post.content}
               components={components}
-              options={mdxOptions as any}
+              options={mdxOptions as MdxOptions}
             />
           </div>
         </article>

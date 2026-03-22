@@ -1,11 +1,13 @@
 "use server";
 
-import { createSupabaseServer } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { createSupabaseServer } from "@/lib/supabase/server";
 
 export async function getNotificationsAction() {
   const supabase = await createSupabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) throw new Error("Unauthorized");
 
@@ -26,7 +28,9 @@ export async function getNotificationsAction() {
 
 export async function markAsReadAction(id: string) {
   const supabase = await createSupabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) throw new Error("Unauthorized");
 
@@ -47,7 +51,9 @@ export async function markAsReadAction(id: string) {
 
 export async function markAllAsReadAction() {
   const supabase = await createSupabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) throw new Error("Unauthorized");
 

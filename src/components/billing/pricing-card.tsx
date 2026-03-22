@@ -1,10 +1,16 @@
 "use client";
 
-import * as React from "react";
-import { useState } from "react";
 import { Check } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 export interface PricingPlan {
@@ -38,12 +44,12 @@ export function PricingCard({ plan, discountCode }: { plan: PricingPlan; discoun
   }
 
   return (
-    <Card 
+    <Card
       className={cn(
         "flex flex-col h-full border-2 transition-all hover:scale-[1.02] rounded-[2.5rem] overflow-hidden shadow-2xl",
-        plan.popular 
-          ? "bg-primary text-primary-foreground border-primary shadow-primary/20" 
-          : "bg-card border-border shadow-sm"
+        plan.popular
+          ? "bg-primary text-primary-foreground border-primary shadow-primary/20"
+          : "bg-card border-border shadow-sm",
       )}
     >
       <CardHeader className="p-10 pb-6">
@@ -52,44 +58,78 @@ export function PricingCard({ plan, discountCode }: { plan: PricingPlan; discoun
             Most Popular
           </span>
         )}
-        <CardTitle className={cn("text-3xl font-black uppercase tracking-tighter", plan.popular ? "text-white" : "text-foreground")}>
+        <CardTitle
+          className={cn(
+            "text-3xl font-black uppercase tracking-tighter",
+            plan.popular ? "text-white" : "text-foreground",
+          )}
+        >
           {plan.name}
         </CardTitle>
         <div className="flex items-baseline gap-1 mt-6">
-          <span className={cn("text-5xl font-black tracking-tighter", plan.popular ? "text-white" : "text-foreground")}>{plan.price}</span>
-          <span className={cn("text-[10px] font-black uppercase tracking-[0.2em] opacity-60", plan.popular ? "text-white" : "text-muted-foreground")}>
+          <span
+            className={cn(
+              "text-5xl font-black tracking-tighter",
+              plan.popular ? "text-white" : "text-foreground",
+            )}
+          >
+            {plan.price}
+          </span>
+          <span
+            className={cn(
+              "text-[10px] font-black uppercase tracking-[0.2em] opacity-60",
+              plan.popular ? "text-white" : "text-muted-foreground",
+            )}
+          >
             /{plan.period}
           </span>
         </div>
-        <CardDescription className={cn("mt-6 text-sm font-medium leading-relaxed", plan.popular ? "text-white/80" : "text-muted-foreground")}>
+        <CardDescription
+          className={cn(
+            "mt-6 text-sm font-medium leading-relaxed",
+            plan.popular ? "text-white/80" : "text-muted-foreground",
+          )}
+        >
           {plan.description}
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="px-10 pb-10 flex-1">
         <ul className="space-y-4">
           {plan.features.map((feature) => (
-            <li key={feature} className="flex items-start gap-4 text-xs font-black uppercase tracking-tight">
-              <div className={cn("rounded-lg p-1 mt-0.5 shrink-0 transition-colors", plan.popular ? "bg-white/20 text-white" : "bg-primary/10 text-primary")}>
-                 <Check className="size-3" strokeWidth={4} />
+            <li
+              key={feature}
+              className="flex items-start gap-4 text-xs font-black uppercase tracking-tight"
+            >
+              <div
+                className={cn(
+                  "rounded-lg p-1 mt-0.5 shrink-0 transition-colors",
+                  plan.popular ? "bg-white/20 text-white" : "bg-primary/10 text-primary",
+                )}
+              >
+                <Check className="size-3" strokeWidth={4} />
               </div>
-              <span className={cn("leading-tight", plan.popular ? "text-white" : "text-foreground/80")}>{feature}</span>
+              <span
+                className={cn("leading-tight", plan.popular ? "text-white" : "text-foreground/80")}
+              >
+                {feature}
+              </span>
             </li>
           ))}
         </ul>
       </CardContent>
 
       <CardFooter className="p-10 pt-0">
-        <Button 
+        <Button
           type="button"
           onClick={handleCheckout}
           disabled={loading}
           size="lg"
           className={cn(
             "w-full h-16 text-xs font-black uppercase tracking-[0.2em] rounded-2xl transition-all shadow-lg",
-            plan.popular 
-              ? "bg-white text-primary hover:bg-white/90 shadow-white/10" 
-              : "bg-foreground text-background hover:bg-foreground/90 shadow-foreground/10"
+            plan.popular
+              ? "bg-white text-primary hover:bg-white/90 shadow-white/10"
+              : "bg-foreground text-background hover:bg-foreground/90 shadow-foreground/10",
           )}
         >
           {loading ? "Processing Payment..." : "Initiate Payment"}

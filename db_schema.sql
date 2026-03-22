@@ -222,7 +222,19 @@ alter table public.webhook_events enable row level security;
 create table if not exists public.billing_events (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade,
-  event_type text not null check (event_type in ('refund', 'dispute')),
+  event_type text not null check (
+    event_type in (
+      'checkout.completed',
+      'subscription_topup',
+      'purchase',
+      'subscription.canceled',
+      'subscription.past_due',
+      'subscription.upgraded',
+      'subscription.downgraded',
+      'refund',
+      'dispute'
+    )
+  ),
   creem_transaction_id text,
   creem_subscription_id text,
   amount integer,

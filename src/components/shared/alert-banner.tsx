@@ -1,4 +1,3 @@
-import * as React from 'react';
 interface BillingEvent {
   id: string;
   event_type: string;

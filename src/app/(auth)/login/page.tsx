@@ -1,16 +1,16 @@
 "use client";
 
-import * as React from 'react';
-import { useState } from "react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowser } from "@/lib/supabase/client";
+import type * as React from "react";
+import { useState } from "react";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { createSupabaseBrowser } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -35,8 +35,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center items-center p-4">
-      <Link 
-        href="/" 
+      <Link
+        href="/"
         className="absolute top-8 left-8 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
       >
         <ArrowLeft className="size-4" /> Back Home
@@ -44,7 +44,12 @@ export default function LoginPage() {
 
       <div className="w-full max-w-lg">
         <div className="text-center mb-10 overflow-hidden pt-12 md:pt-0">
-           <Link href="/" className="text-3xl font-black tracking-tighter uppercase mb-2 inline-block">SAASXCREEM</Link>
+          <Link
+            href="/"
+            className="text-3xl font-black tracking-tighter uppercase mb-2 inline-block"
+          >
+            SAASXCREEM
+          </Link>
         </div>
 
         <Card className="border-none shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)]">
@@ -54,7 +59,7 @@ export default function LoginPage() {
               Log in to your command center to continue building.
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent className="p-10 pt-0">
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
@@ -88,8 +93,16 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <Button type="submit" className="w-full h-14 rounded-2xl text-lg font-black uppercase tracking-tight" disabled={loading}>
-                {loading ? <Loader2 className="size-5 animate-spin mr-2" /> : "Sign In to Dashboard"}
+              <Button
+                type="submit"
+                className="w-full h-14 rounded-2xl text-lg font-black uppercase tracking-tight"
+                disabled={loading}
+              >
+                {loading ? (
+                  <Loader2 className="size-5 animate-spin mr-2" />
+                ) : (
+                  "Sign In to Dashboard"
+                )}
               </Button>
 
               <div className="relative py-4">
@@ -106,7 +119,10 @@ export default function LoginPage() {
 
             <p className="mt-8 text-center text-sm font-bold text-muted-foreground">
               Don&apos;t have an account?{" "}
-              <Link href="/signup" className="text-primary hover:underline font-black uppercase tracking-tight">
+              <Link
+                href="/signup"
+                className="text-primary hover:underline font-black uppercase tracking-tight"
+              >
                 Create Account
               </Link>
             </p>
@@ -114,7 +130,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="mt-8 text-center text-xs font-black uppercase tracking-widest text-muted-foreground/60">
-           Enterprise ready. GDPR compliant. Secure.
+          Enterprise ready. GDPR compliant. Secure.
         </p>
       </div>
     </div>

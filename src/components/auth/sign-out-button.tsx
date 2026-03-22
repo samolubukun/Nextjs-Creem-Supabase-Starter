@@ -1,10 +1,9 @@
 "use client";
 
-import * as React from 'react';
-import { useRouter } from "next/navigation";
-import { createSupabaseBrowser } from "@/lib/supabase/client";
 import { LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { createSupabaseBrowser } from "@/lib/supabase/client";
 
 export function SignOutButton() {
   const router = useRouter();

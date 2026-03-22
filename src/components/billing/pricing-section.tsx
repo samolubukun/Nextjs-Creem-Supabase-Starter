@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { PricingCard, type PricingPlan } from "./pricing-card";
 
 export function PricingSection({ plans }: { plans: PricingPlan[] }) {

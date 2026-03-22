@@ -1,6 +1,6 @@
+import { redirect } from "next/navigation";
 import { creem } from "@/lib/creem";
 import { createSupabaseServer } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 
 export async function POST() {
   const supabase = await createSupabaseServer();

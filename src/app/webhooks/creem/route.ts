@@ -1,18 +1,38 @@
 import { Webhook } from "@creem_io/nextjs";
+import { getPlanName, PRODUCT_PRICE_MAPPING } from "@/lib/credits-config";
+import { sendPaymentConfirmationEmail } from "@/lib/email-service";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { buildSubscriptionUpdate, buildSubscriptionUpsert, handleCreditGrant } from "./handlers";
-import { sendPaymentConfirmationEmail } from "@/lib/email-service";
-import { getPlanName, PRODUCT_PRICE_MAPPING } from "@/lib/credits-config";
+
+type CheckoutEventExtras = {
+  amount?: number;
+  currency?: string;
+  transaction_id?: string;
+  feature?: {
+    license?: {
+      key?: string;
+    };
+  };
+};
+
+type SubscriptionPaidEventExtras = {
+  amount?: number;
+  currency?: string;
+};
 
 export const POST = Webhook({
   webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
 
   onCheckoutCompleted: async (event) => {
     const db = getSupabaseAdmin();
+    const eventExtras = event as CheckoutEventExtras;
     console.log(`[webhook] checkout.completed fired. webhookId=${event.webhookId}`);
     console.log(`[webhook] metadata:`, JSON.stringify(event.metadata));
     console.log(`[webhook] product: id=${event.product.id}, name=${event.product.name}`);
-    console.log(`[webhook] subscription:`, event.subscription ? `id=${event.subscription.id}` : "none (one-time)");
+    console.log(
+      `[webhook] subscription:`,
+      event.subscription ? `id=${event.subscription.id}` : "none (one-time)",
+    );
 
     const row = buildSubscriptionUpsert({
       metadata: event.metadata as { user_id?: string } | undefined,
@@ -47,9 +67,16 @@ export const POST = Webhook({
     }
 
     // Upsert subscription FIRST, before recording the webhook event
-    const { error: subError } = await db.from("subscriptions").upsert(row, { onConflict: "user_id" });
+    const { error: subError } = await db
+      .from("subscriptions")
+      .upsert(row, { onConflict: "user_id" });
     if (subError) {
-      console.error(`[webhook][ERROR] subscriptions.upsert FAILED:`, subError.message, subError.details, subError.hint);
+      console.error(
+        `[webhook][ERROR] subscriptions.upsert FAILED:`,
+        subError.message,
+        subError.details,
+        subError.hint,
+      );
     } else {
       console.log(`[webhook] subscriptions.upsert SUCCESS for user ${row.user_id}`);
     }
@@ -74,27 +101,30 @@ export const POST = Webhook({
     const isOneTime = !event.subscription?.id || productName.toLowerCase().includes("nova pro max");
 
     // Store license key if present in the event
-    const licenseKey = (event as any).feature?.license?.key;
+    const licenseKey = eventExtras.feature?.license?.key;
     if (licenseKey && row.user_id) {
-       console.log(`[webhook] Storing license key for user ${row.user_id}`);
-       const { error: licError } = await db.from("licenses").upsert({
+      console.log(`[webhook] Storing license key for user ${row.user_id}`);
+      const { error: licError } = await db.from("licenses").upsert(
+        {
           user_id: row.user_id,
           creem_license_key: licenseKey,
           creem_product_id: row.creem_product_id,
           product_name: productName,
           status: "active",
-          activated_at: new Date().toISOString()
-       }, { onConflict: "creem_license_key" });
-       if (licError) console.error(`[webhook][ERROR] licenses.upsert FAILED:`, licError.message);
+          activated_at: new Date().toISOString(),
+        },
+        { onConflict: "creem_license_key" },
+      );
+      if (licError) console.error(`[webhook][ERROR] licenses.upsert FAILED:`, licError.message);
     }
 
     await handleCreditGrant(
-      db, 
-      row.user_id, 
-      row.creem_product_id, 
+      db,
+      row.user_id,
+      row.creem_product_id,
       productName,
       isOneTime ? "purchase" : "subscription_topup",
-      (event as any).amount // Pass the actual amount paid
+      eventExtras.amount, // Pass the actual amount paid
     );
 
     // Record billing event for notification
@@ -102,9 +132,9 @@ export const POST = Webhook({
       await db.from("billing_events").insert({
         user_id: row.user_id,
         event_type: "checkout.completed",
-        creem_transaction_id: (event as any).transaction_id,
-        amount: (event as any).amount,
-        currency: (event as any).currency || "USD",
+        creem_transaction_id: eventExtras.transaction_id,
+        amount: eventExtras.amount,
+        currency: eventExtras.currency || "USD",
         reason: `Successful purchase of ${productName}`,
         status: "open",
       });
@@ -113,11 +143,15 @@ export const POST = Webhook({
 
   onSubscriptionPaid: async (event) => {
     const db = getSupabaseAdmin();
+    const eventExtras = event as SubscriptionPaidEventExtras;
     console.log(`[webhook] subscription.paid fired. subscription_id=${event.id}`);
     const update = buildSubscriptionUpdate("active", {
       current_period_end_date: event.current_period_end_date,
     });
-    const { error: updateErr } = await db.from("subscriptions").update(update).eq("creem_subscription_id", event.id);
+    const { error: updateErr } = await db
+      .from("subscriptions")
+      .update(update)
+      .eq("creem_subscription_id", event.id);
     if (updateErr) {
       console.error(`[webhook][ERROR] subscription.paid update FAILED:`, updateErr.message);
     } else {
@@ -132,17 +166,20 @@ export const POST = Webhook({
       .single();
 
     if (subFetchErr) {
-      console.error(`[webhook][ERROR] subscription.paid: could not find subscription row for sub ${event.id}:`, subFetchErr.message);
+      console.error(
+        `[webhook][ERROR] subscription.paid: could not find subscription row for sub ${event.id}:`,
+        subFetchErr.message,
+      );
     }
 
-    if (sub && sub.user_id && sub.creem_product_id) {
+    if (sub?.user_id && sub.creem_product_id) {
       await handleCreditGrant(
-        db, 
-        sub.user_id, 
-        sub.creem_product_id, 
+        db,
+        sub.user_id,
+        sub.creem_product_id,
         sub.product_name ?? "Subscription",
         "subscription_topup",
-        (event as any).amount // Pass the actual amount paid
+        eventExtras.amount, // Pass the actual amount paid
       );
 
       // Record billing event for notification
@@ -150,13 +187,15 @@ export const POST = Webhook({
         user_id: sub.user_id,
         event_type: "subscription_topup",
         creem_transaction_id: event.id,
-        amount: (event as any).amount,
-        currency: (event as any).currency || "USD",
+        amount: eventExtras.amount,
+        currency: eventExtras.currency || "USD",
         reason: `Subscription renewed: ${sub.product_name ?? "Active Plan"}`,
         status: "open",
       });
     } else {
-      console.error(`[webhook][ERROR] subscription.paid: no matching subscription found for creem_subscription_id=${event.id}`);
+      console.error(
+        `[webhook][ERROR] subscription.paid: no matching subscription found for creem_subscription_id=${event.id}`,
+      );
     }
   },
 
@@ -168,7 +207,11 @@ export const POST = Webhook({
     await db.from("subscriptions").update(update).eq("creem_subscription_id", event.id);
 
     // Record billing event for notification
-    const { data: sub } = await db.from("subscriptions").select("user_id, product_name").eq("creem_subscription_id", event.id).single();
+    const { data: sub } = await db
+      .from("subscriptions")
+      .select("user_id, product_name")
+      .eq("creem_subscription_id", event.id)
+      .single();
     if (sub?.user_id) {
       await db.from("billing_events").insert({
         user_id: sub.user_id,
@@ -212,23 +255,29 @@ export const POST = Webhook({
       .eq("creem_subscription_id", event.id);
 
     // Record billing event for notification
-    const { data: sub } = await db.from("subscriptions").select("user_id, product_name").eq("creem_subscription_id", event.id).single();
+    const { data: sub } = await db
+      .from("subscriptions")
+      .select("user_id, product_name")
+      .eq("creem_subscription_id", event.id)
+      .single();
     if (sub?.user_id) {
-       await db.from("billing_events").insert({
-         user_id: sub.user_id,
-         event_type: "subscription.past_due",
-         creem_subscription_id: event.id,
-         reason: `Action Required: Payment failed for ${sub.product_name || "Plan"}`,
-         status: "open",
-       });
+      await db.from("billing_events").insert({
+        user_id: sub.user_id,
+        event_type: "subscription.past_due",
+        creem_subscription_id: event.id,
+        reason: `Action Required: Payment failed for ${sub.product_name || "Plan"}`,
+        status: "open",
+      });
     }
   },
 
   onSubscriptionUpdate: async (event) => {
     const db = getSupabaseAdmin();
     const productId = typeof event.product === "string" ? event.product : event.product.id;
-    const productName = (typeof event.product === "string" ? undefined : event.product.name) || getPlanName(productId);
-    
+    const productName =
+      (typeof event.product === "string" ? undefined : event.product.name) ||
+      getPlanName(productId);
+
     // Fetch current subscription to detect upgrade vs downgrade
     const { data: existingSub } = await db
       .from("subscriptions")
@@ -250,7 +299,8 @@ export const POST = Webhook({
 
     // Record billing event for upgrade/downgrade notification
     if (existingSub?.user_id && existingSub.creem_product_id !== productId) {
-      const previousName = existingSub.product_name || getPlanName(existingSub.creem_product_id) || "previous plan";
+      const previousName =
+        existingSub.product_name || getPlanName(existingSub.creem_product_id) || "previous plan";
       // Determine upgrade vs downgrade by checking plan tiers (higher price = upgrade)
       const previousPrice = PRODUCT_PRICE_MAPPING[existingSub.creem_product_id] ?? 0;
       const newPrice = PRODUCT_PRICE_MAPPING[productId] ?? 0;

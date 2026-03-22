@@ -1,6 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { creem } from "@/lib/creem";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { formatTransaction } from "./helpers";
 
@@ -31,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    const formatted = (transactions || []).map((tx: any) =>
+    const formatted = (transactions || []).map((tx) =>
       formatTransaction({
         id: tx.id,
         amount: tx.amount,

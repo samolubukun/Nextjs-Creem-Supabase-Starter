@@ -1,17 +1,17 @@
 "use client";
 
-import * as React from 'react';
-import { useState } from "react";
+import { ArrowLeft, Loader2, Rocket } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowser } from "@/lib/supabase/client";
-import { initPostHog } from "@/lib/posthog";
+import type * as React from "react";
+import { useState } from "react";
 import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, ArrowLeft, Rocket } from "lucide-react";
+import { initPostHog } from "@/lib/posthog";
+import { createSupabaseBrowser } from "@/lib/supabase/client";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -19,7 +19,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const router = useRouter();
+  const _router = useRouter();
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
@@ -41,14 +41,14 @@ export default function SignupPage() {
       // Track signup event
       const posthog = initPostHog();
       if (posthog) {
-        posthog.capture('user_signed_up', { email });
+        posthog.capture("user_signed_up", { email });
       }
 
       // Send Welcome Email
       // Note: We don't await this to avoid blocking the UI, but we trigger it
-      fetch('/api/auth/welcome', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      fetch("/api/auth/welcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       }).catch(console.error);
 
@@ -59,8 +59,8 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center items-center p-4">
-      <Link 
-        href="/" 
+      <Link
+        href="/"
         className="absolute top-8 left-8 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
       >
         <ArrowLeft className="size-4" /> Back Home
@@ -68,7 +68,12 @@ export default function SignupPage() {
 
       <div className="w-full max-w-lg">
         <div className="text-center mb-10 overflow-hidden pt-12 md:pt-0">
-           <Link href="/" className="text-3xl font-black tracking-tighter uppercase mb-2 inline-block">SAASXCREEM</Link>
+          <Link
+            href="/"
+            className="text-3xl font-black tracking-tighter uppercase mb-2 inline-block"
+          >
+            SAASXCREEM
+          </Link>
         </div>
 
         <Card className="border-none shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden">
@@ -79,17 +84,19 @@ export default function SignupPage() {
               Create your account and launch your SaaS in minutes.
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent className="p-10 pt-0">
             {message ? (
               <div className="text-center py-10">
                 <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto mb-6">
                   <Rocket className="size-10" />
                 </div>
-                <h3 className="text-2xl font-black tracking-tighter uppercase mb-2">Check your email</h3>
+                <h3 className="text-2xl font-black tracking-tighter uppercase mb-2">
+                  Check your email
+                </h3>
                 <p className="text-muted-foreground font-medium">{message}</p>
                 <Button asChild variant="outline" className="mt-8 rounded-2xl">
-                   <Link href="/login">Back to Sign In</Link>
+                  <Link href="/login">Back to Sign In</Link>
                 </Button>
               </div>
             ) : (
@@ -126,7 +133,11 @@ export default function SignupPage() {
                   </div>
                 )}
 
-                <Button type="submit" className="w-full h-14 rounded-2xl text-lg font-black uppercase tracking-tight" disabled={loading}>
+                <Button
+                  type="submit"
+                  className="w-full h-14 rounded-2xl text-lg font-black uppercase tracking-tight"
+                  disabled={loading}
+                >
                   {loading ? <Loader2 className="size-5 animate-spin mr-2" /> : "Initiate Account"}
                 </Button>
 
@@ -146,7 +157,10 @@ export default function SignupPage() {
             {!message && (
               <p className="mt-8 text-center text-sm font-bold text-muted-foreground">
                 Already have an account?{" "}
-                <Link href="/login" className="text-primary hover:underline font-black uppercase tracking-tight">
+                <Link
+                  href="/login"
+                  className="text-primary hover:underline font-black uppercase tracking-tight"
+                >
                   Sign In
                 </Link>
               </p>
@@ -155,7 +169,7 @@ export default function SignupPage() {
         </Card>
 
         <p className="mt-8 text-center text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 px-10 leading-relaxed">
-           By signing up, you agree to our terms of service and privacy policy.
+          By signing up, you agree to our terms of service and privacy policy.
         </p>
       </div>
     </div>

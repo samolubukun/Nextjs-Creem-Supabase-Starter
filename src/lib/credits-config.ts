@@ -7,18 +7,19 @@ import { CREDIT_UNLIMITED } from "@/app/api/credits/helpers";
 export const PRODUCT_CREDIT_MAPPING: Record<string, number> = {
   // Starter Plan
   [process.env.NEXT_PUBLIC_CREEM_STARTER_PRODUCT_ID ?? "prod_10ZHaKvlzE1vAYa7317R6s"]: 100,
-  
+
   // Creator Plan
   [process.env.NEXT_PUBLIC_CREEM_PRO_PRODUCT_ID ?? "prod_4eT7MCvY7sH2BvNa5DTHh7"]: 500,
-  
+
   // Professional Plan
   [process.env.NEXT_PUBLIC_CREEM_ENTERPRISE_PRODUCT_ID ?? "prod_4lFbtDJGdVOjpjk6CwghSr"]: 2000,
-  
+
   // Content Nova Pro Max (One-time)
-  [process.env.NEXT_PUBLIC_CREEM_PRO_MAX_PRODUCT_ID ?? "prod_W3MrXbD703JLiOAJyL6TD"]: CREDIT_UNLIMITED,
+  [process.env.NEXT_PUBLIC_CREEM_PRO_MAX_PRODUCT_ID ?? "prod_W3MrXbD703JLiOAJyL6TD"]:
+    CREDIT_UNLIMITED,
 };
 
-/** 
+/**
  * Mapping of Creem Product IDs to their prices in cents.
  */
 export const PRODUCT_PRICE_MAPPING: Record<string, number> = {
@@ -56,7 +57,7 @@ export const PLANS = [
 ];
 
 export function getPlanName(productId: string): string {
-  return PLANS.find(p => p.id === productId)?.name || "Plan";
+  return PLANS.find((p) => p.id === productId)?.name || "Plan";
 }
 
 export function getCreditsForProduct(productId: string, productName?: string): number {
@@ -66,16 +67,16 @@ export function getCreditsForProduct(productId: string, productName?: string): n
   }
 
   const name = productName?.toLowerCase() || getPlanName(productId).toLowerCase();
-  
+
   // 2. Fallback to strict name-based check for Pro Max/Lifetime
   if (
-    name.includes("pro max") || 
+    name.includes("pro max") ||
     name.includes("lifetime") ||
     (name.includes("nova") && name.includes("max"))
   ) {
     return CREDIT_UNLIMITED;
   }
-  
+
   return 0;
 }
 
@@ -86,11 +87,11 @@ export function getPriceForProduct(productId: string, productName?: string): num
   }
 
   const name = productName?.toLowerCase() || getPlanName(productId).toLowerCase();
-  
+
   // 2. Fallback to strict name-based check for Pro Max
   if (name.includes("pro max") || (name.includes("nova") && name.includes("max"))) {
     return 300000;
   }
-  
+
   return 0;
 }

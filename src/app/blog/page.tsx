@@ -1,9 +1,9 @@
-import Link from 'next/link';
-import { getBlogPosts, PostMetadata } from '@/lib/blog';
-import { Calendar, User, ArrowRight } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { LandingHeader } from '@/components/layout/landing-header';
-import { LandingFooter } from '@/components/layout/landing-footer';
+import { ArrowRight, Calendar, User } from "lucide-react";
+import Link from "next/link";
+import { LandingFooter } from "@/components/layout/landing-footer";
+import { LandingHeader } from "@/components/layout/landing-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { getBlogPosts, type PostMetadata } from "@/lib/blog";
 
 export default async function BlogPage() {
   const posts = await getBlogPosts();
@@ -43,7 +43,8 @@ export default async function BlogPage() {
                         {post.summary}
                       </p>
                       <div className="flex items-center text-xs font-black uppercase tracking-widest text-primary gap-2">
-                        Read Post <ArrowRight className="size-3 transition-transform group-hover:translate-x-1" />
+                        Read Post{" "}
+                        <ArrowRight className="size-3 transition-transform group-hover:translate-x-1" />
                       </div>
                     </div>
                   </CardContent>

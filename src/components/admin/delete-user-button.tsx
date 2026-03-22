@@ -1,15 +1,19 @@
 "use client";
 
+import { Loader2, Trash2 } from "lucide-react";
 import { useTransition } from "react";
-import { Trash2, Loader2 } from "lucide-react";
 import { deleteUserAction } from "@/app/actions/admin-actions";
 import { Button } from "@/components/ui/button";
 
-export function DeleteUserButton({ userId, userName }: { userId: string, userName: string }) {
+export function DeleteUserButton({ userId, userName }: { userId: string; userName: string }) {
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = () => {
-    if (confirm(`ARE YOU ABSOLUTELY SURE? \n\nThis will permanently delete ${userName} and ALL their associated data, credits, and subscriptions. This cannot be undone.`)) {
+    if (
+      confirm(
+        `ARE YOU ABSOLUTELY SURE? \n\nThis will permanently delete ${userName} and ALL their associated data, credits, and subscriptions. This cannot be undone.`,
+      )
+    ) {
       startTransition(async () => {
         const result = await deleteUserAction(userId);
         if (!result.success) {
