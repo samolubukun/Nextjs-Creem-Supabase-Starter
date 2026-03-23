@@ -18,6 +18,12 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+## Live Offer
+
+- Live app: `https://saasxcreem.vercel.app/`
+- Discount code: `CREEMSAAS2026`
+- Offer: 30% off (one-time redemption)
+
 ## Stack
 
 - Next.js 16 (App Router), React 19, TypeScript
