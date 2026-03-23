@@ -20,7 +20,7 @@ Open `http://localhost:3000`.
 
 ## Live Offer
 
-- Live app: `https://saasxcreem.vercel.app/`
+- Live app: [https://saasxcreem.vercel.app](https://saasxcreem.vercel.app)
 - Discount code: `CREEMSAAS2026`
 - Offer: 30% off (one-time redemption)
 
