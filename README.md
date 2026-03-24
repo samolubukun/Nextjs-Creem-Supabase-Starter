@@ -47,6 +47,7 @@ Open `http://localhost:3000`.
 - AI assistant: persisted chat sessions/messages with per-response credit deduction
 - Email workflows: welcome email and payment confirmation email
 - Blog support: MDX-compatible content pipeline and dynamic slug pages
+- Storage: S3-compatible presigned uploads/downloads with file metadata (AWS S3, Cloudflare R2, MinIO)
 
 ## Setup Guide
 
@@ -401,7 +402,7 @@ Main server routes:
 
 ## S3-Compatible File Storage
 
-This project now includes a presigned upload endpoint that works with AWS S3, Cloudflare R2, and MinIO.
+This project includes a presigned upload endpoint that works with AWS S3, Cloudflare R2, and MinIO.
 
 ### Environment variables
 
