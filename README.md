@@ -95,6 +95,7 @@ App runs at `http://localhost:3000`.
 - `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL` for AI assistant
 - `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` for analytics
 - `ADMIN_EMAILS` (or `ADMIN_EMAIL`) for admin dashboard access
+- S3-compatible storage vars for uploads (`S3_BUCKET`, `S3_REGION`, credentials, endpoint options)
 
 ### 5) Verify everything before deploy
 
@@ -363,6 +364,7 @@ Main entities in `supabase/db_schema.sql`:
 - `billing_events`: notifications/refunds/disputes-style event log
 - `purchases`: one-time purchases
 - `chats`, `chat_messages`: AI chat persistence
+- `files`: uploaded object metadata and ownership records
 - `audit_logs`: audit trail table
 
 Also includes helper functions and triggers:
@@ -391,7 +393,64 @@ Main server routes:
 - `GET|POST /api/discounts`
 - `POST /api/chat`
 - `POST /api/auth/welcome`
+- `GET|POST /api/storage/presign`
+- `POST /api/storage/complete`
+- `GET /api/storage/download?fileId=...`
+- `GET /api/storage/files`
 - `POST /webhooks/creem`
+
+## S3-Compatible File Storage
+
+This project now includes a presigned upload endpoint that works with AWS S3, Cloudflare R2, and MinIO.
+
+### Environment variables
+
+Set these in `.env.local`:
+
+- `S3_PROVIDER`: optional label (`s3`, `r2`, `minio`)
+- `S3_BUCKET`: target bucket name
+- `S3_REGION`: region (use `auto` for Cloudflare R2)
+- `S3_ENDPOINT`: required for R2/MinIO (leave empty for AWS S3)
+- `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`: credentials
+- `S3_FORCE_PATH_STYLE`: `true` for most MinIO setups
+- `S3_KEY_PREFIX`: object key prefix (default: `uploads`)
+- `S3_PUBLIC_BASE_URL`: optional public base URL for file links
+- `S3_SIGNED_URL_TTL_SECONDS`: signed URL lifetime (default: `900`)
+- `S3_DOWNLOAD_URL_TTL_SECONDS`: download URL lifetime (default: `300`)
+- `S3_MAX_UPLOAD_BYTES`: max file size in bytes
+- `S3_ALLOWED_MIME_TYPES`: comma-separated allowlist
+
+### API usage
+
+1. `GET /api/storage/presign` to read upload limits.
+2. `POST /api/storage/presign` with:
+
+```json
+{
+  "filename": "invoice.pdf",
+  "contentType": "application/pdf",
+  "size": 125631,
+  "folder": "documents"
+}
+```
+
+3. Use `uploadUrl` from the response to upload directly from the browser:
+
+```ts
+await fetch(uploadUrl, {
+  method: "PUT",
+  headers: { "Content-Type": file.type },
+  body: file,
+});
+```
+
+The object key is automatically namespaced per user and includes a UUID to avoid collisions.
+
+### Upload completion and downloads
+
+- `POST /api/storage/complete`: persist upload metadata in `files` table after upload succeeds.
+- `GET /api/storage/files`: list recent files for the authenticated user.
+- `GET /api/storage/download?fileId=...`: create a short-lived signed download URL after ownership check.
 
 ## Scripts
 

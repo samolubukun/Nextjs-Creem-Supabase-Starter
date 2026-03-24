@@ -327,7 +327,45 @@ create policy "Users can create own chat messages"
   with check (auth.uid() = user_id);
 
 -- ============================================================
--- 9. Audit Logs
+-- 9. File Metadata
+-- ============================================================
+create table if not exists public.files (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade not null,
+  storage_provider text not null,
+  bucket text not null,
+  object_key text not null unique,
+  original_filename text not null,
+  content_type text not null,
+  size_bytes bigint not null check (size_bytes > 0),
+  status text not null default 'uploaded' check (status in ('pending', 'uploaded', 'failed', 'deleted')),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create index if not exists idx_files_user_id on public.files(user_id);
+create index if not exists idx_files_object_key on public.files(object_key);
+
+alter table public.files enable row level security;
+
+create policy "Users can view own files"
+  on public.files for select
+  using (auth.uid() = user_id);
+
+create policy "Users can create own files"
+  on public.files for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update own files"
+  on public.files for update
+  using (auth.uid() = user_id);
+
+create trigger files_updated_at
+  before update on public.files
+  for each row execute function public.handle_updated_at();
+
+-- ============================================================
+-- 10. Audit Logs
 -- ============================================================
 create table if not exists public.audit_logs (
   id uuid primary key default gen_random_uuid(),

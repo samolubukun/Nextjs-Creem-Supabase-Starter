@@ -276,6 +276,45 @@ export const chatMessages = pgTable(
   ],
 );
 
+export const files = pgTable(
+  "files",
+  {
+    id: uuid().defaultRandom().primaryKey().notNull(),
+    userId: uuid("user_id").notNull(),
+    storageProvider: text("storage_provider").notNull(),
+    bucket: text().notNull(),
+    objectKey: text("object_key").notNull().unique(),
+    originalFilename: text("original_filename").notNull(),
+    contentType: text("content_type").notNull(),
+    sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+    status: text().default("uploaded").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }).defaultNow(),
+  },
+  (table) => [
+    index("idx_files_user_id").on(table.userId),
+    index("idx_files_object_key").on(table.objectKey),
+    pgPolicy("Users can view own files", {
+      as: "permissive",
+      for: "select",
+      to: ["public"],
+      using: sql`(auth.uid() = user_id)`,
+    }),
+    pgPolicy("Users can create own files", {
+      as: "permissive",
+      for: "insert",
+      to: ["public"],
+      withCheck: sql`(auth.uid() = user_id)`,
+    }),
+    pgPolicy("Users can update own files", {
+      as: "permissive",
+      for: "update",
+      to: ["public"],
+      using: sql`(auth.uid() = user_id)`,
+    }),
+  ],
+);
+
 export const auditLogs = pgTable(
   "audit_logs",
   {
