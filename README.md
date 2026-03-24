@@ -9,7 +9,7 @@ Creem products, pricing, and billing behavior depend on your own Creem account c
 ## Quick Start
 
 ```bash
-git clone https://github.com/samuel-olubukun/Nextjs-Creem-Starter saasxcreem
+git clone https://github.com/samolubukun/Nextjs-Creem-Supabase-Starter saasxcreem
 cd saasxcreem
 npm install
 cp .env.example .env.local
@@ -54,7 +54,7 @@ Open `http://localhost:3000`.
 ### 1) Install and run locally
 
 ```bash
-git clone https://github.com/samuel-olubukun/Nextjs-Creem-Starter saasxcreem
+git clone https://github.com/samolubukun/Nextjs-Creem-Supabase-Starter saasxcreem
 cd saasxcreem
 npm install
 cp .env.example .env.local
