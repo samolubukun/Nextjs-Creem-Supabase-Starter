@@ -47,7 +47,7 @@ export function LandingHeader() {
               className="bg-foreground text-background hover:bg-muted-foreground h-10 px-6 rounded-full ml-2"
             >
               <a
-                href="https://github.com/samuel-olubukun/Nextjs-Creem-Starter"
+                href="https://github.com/samolubukun/Nextjs-Creem-Supabase-Starter"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -115,7 +115,7 @@ export function LandingHeader() {
                 className="w-full bg-foreground text-background hover:bg-muted rounded-xl mt-2"
               >
                 <a
-                  href="https://github.com/samuel-olubukun/Nextjs-Creem-Starter"
+                  href="https://github.com/samolubukun/Nextjs-Creem-Supabase-Starter"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center font-black uppercase tracking-tighter"

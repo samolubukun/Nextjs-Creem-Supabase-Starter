@@ -14,7 +14,7 @@ export function LandingFooter() {
           </Link>
 
           <a
-            href="https://github.com/samuel-olubukun/Nextjs-Creem-Starter"
+            href="https://github.com/samolubukun/Nextjs-Creem-Supabase-Starter"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-primary transition-colors flex items-center whitespace-nowrap"

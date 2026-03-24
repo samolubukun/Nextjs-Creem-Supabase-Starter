@@ -121,7 +121,7 @@ export default function LandingPage() {
                   className="h-16 px-12 text-lg bg-foreground text-background hover:bg-muted rounded-full transition-colors"
                 >
                   <a
-                    href="https://github.com/samuel-olubukun/Nextjs-Creem-Starter"
+                    href="https://github.com/samolubukun/Nextjs-Creem-Supabase-Starter"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center"
