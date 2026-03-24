@@ -73,6 +73,7 @@ App runs at `http://localhost:3000`.
 - Initialize database:
   - Option A (recommended for quick setup): apply `supabase/db_schema.sql`
   - Option B: use Drizzle migration flow (`npx drizzle-kit generate` then `npx drizzle-kit migrate`)
+- Security hardening (required): run `supabase/rls_hardening.sql` in Supabase SQL Editor after either setup path so RLS is guaranteed enabled on public tables and policies are enforced.
 - In Supabase Auth, enable Google provider and add callback URL:
   - `http://localhost:3000/callback`
 
