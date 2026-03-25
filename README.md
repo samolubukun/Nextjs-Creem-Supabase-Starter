@@ -48,6 +48,10 @@ Open `http://localhost:3000`.
 - Email workflows: welcome email and payment confirmation email
 - Blog support: MDX-compatible content pipeline and dynamic slug pages
 - Storage: S3-compatible presigned uploads/downloads with file metadata (AWS S3, Cloudflare R2, MinIO)
+- Rate limiting: Upstash-powered request throttling on sensitive APIs (`/api/chat`, `/api/checkout`, `/api/subscriptions/*`, `/api/auth/welcome`)
+- Structured logging: Better Stack-ready JSON logs for API and webhook flows with contextual event metadata
+- Redis caching: cache-aside optimization for expensive blog reads and admin dashboard aggregate queries
+- SEO + social: enhanced metadata, canonical tags, `sitemap.xml`, `robots.txt`, and generated Open Graph image endpoint
 
 ## Setup Guide
 
