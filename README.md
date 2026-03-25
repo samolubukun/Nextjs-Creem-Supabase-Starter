@@ -98,8 +98,17 @@ App runs at `http://localhost:3000`.
 - `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` for analytics
 - `ADMIN_EMAILS` (or `ADMIN_EMAIL`) for admin dashboard access
 - S3-compatible storage vars for uploads (`S3_BUCKET`, `S3_REGION`, credentials, endpoint options)
+- Upstash Redis: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (rate limiting + caching)
+- Better Stack logging: `BETTERSTACK_SOURCE_TOKEN`, `BETTERSTACK_INGESTING_HOST`
 
-### 5) Verify everything before deploy
+### 5) Production hardening in this boilerplate
+
+- **Rate limiting** on sensitive API routes (`/api/chat`, `/api/checkout`, `/api/subscriptions/*`, `/api/auth/welcome`) with user-first identity and IP fallback
+- **SEO** with `metadata`, `sitemap.xml`, `robots.txt`, Open Graph, and Twitter card support
+- **Structured logging** via `src/lib/logger.ts` with Better Stack ingestion support
+- **Redis caching** for expensive read paths (blog fetches + admin dashboard aggregate reads)
+
+### 6) Verify everything before deploy
 
 ```bash
 npm run check
