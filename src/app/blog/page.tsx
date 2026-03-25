@@ -1,9 +1,27 @@
 import { ArrowRight, Calendar, User } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { LandingFooter } from "@/components/layout/landing-footer";
 import { LandingHeader } from "@/components/layout/landing-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { getBlogPosts, type PostMetadata } from "@/lib/blog";
+
+export const metadata: Metadata = {
+  title: "Blog",
+  description: "Deep dives into building production-grade SaaS products with Next.js and Supabase.",
+  alternates: { canonical: "/blog" },
+  openGraph: {
+    title: "SAASXCREEM Blog",
+    description: "Deep dives into building production-grade SaaS products.",
+    url: "/blog",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SAASXCREEM Blog",
+    description: "Deep dives into building production-grade SaaS products.",
+  },
+};
 
 export default async function BlogPage() {
   const posts = await getBlogPosts();

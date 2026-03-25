@@ -17,9 +17,48 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SAASXCREEM — Next.js + Supabase + Creem Boilerplate",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  title: {
+    default: "SAASXCREEM — Next.js + Supabase + Creem Boilerplate",
+    template: "%s | SAASXCREEM",
+  },
   description:
     "Production-ready SaaS starter with authentication, database, payments, and subscriptions. Built with Next.js, Supabase, and Creem.",
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    siteName: "SAASXCREEM",
+    title: "SAASXCREEM — Next.js + Supabase + Creem Boilerplate",
+    description:
+      "Production-ready SaaS starter with authentication, database, payments, and subscriptions.",
+    url: "/",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "SAASXCREEM" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SAASXCREEM — Next.js + Supabase + Creem Boilerplate",
+    description:
+      "Production-ready SaaS starter with authentication, database, payments, and subscriptions.",
+    images: ["/opengraph-image"],
+  },
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

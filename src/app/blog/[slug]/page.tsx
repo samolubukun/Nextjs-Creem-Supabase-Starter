@@ -1,4 +1,5 @@
 import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote, type MDXRemoteProps } from "next-mdx-remote/rsc";
@@ -36,7 +37,11 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
   const post = await getBlogPostBySlug(slug);
   if (!post) return {};
@@ -44,11 +49,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${post.metadata.title} | saasxcreem`,
     description: post.metadata.summary,
+    alternates: {
+      canonical: `/blog/${post.metadata.slug}`,
+    },
     openGraph: {
       title: post.metadata.title,
       description: post.metadata.summary,
       type: "article",
       publishedTime: post.metadata.publishedAt,
+      url: `/blog/${post.metadata.slug}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.metadata.title,
+      description: post.metadata.summary,
     },
   };
 }
