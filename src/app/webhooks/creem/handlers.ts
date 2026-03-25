@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CREDIT_UNLIMITED } from "@/app/api/credits/helpers";
 import { getCreditsForProduct, getPriceForProduct } from "@/lib/credits-config";
+import { logger } from "@/lib/logger";
 
 /**
  * Pure functions for webhook event processing.
@@ -34,14 +35,20 @@ export async function handleCreditGrant(
   const credits = getCreditsForProduct(productId, productName);
   const standardPriceCents = getPriceForProduct(productId, productName);
 
-  console.log(
-    `[webhook] handleCreditGrant: userId=${userId}, productId=${productId}, productName=${productName}, credits=${credits === CREDIT_UNLIMITED ? "UNLIMITED" : credits}`,
-  );
+  logger.info("Webhook credit grant processing started", {
+    event: "webhook.credit_grant_start",
+    userId,
+    productId,
+    productName,
+    credits: credits === CREDIT_UNLIMITED ? "UNLIMITED" : credits,
+  });
 
   if (credits === 0) {
-    console.log(
-      `[webhook][WARN] handleCreditGrant: 0 credits for product ${productId} (${productName}), skipping`,
-    );
+    logger.warn("Webhook credit grant skipped due to zero credits", {
+      event: "webhook.credit_grant_zero_credits",
+      productId,
+      productName,
+    });
     return;
   }
 
@@ -58,9 +65,14 @@ export async function handleCreditGrant(
     }
   }
 
-  console.log(
-    `[webhook] Granting ${credits === CREDIT_UNLIMITED ? "unlimited" : credits} credits to ${userId} for ${productName}${tag}`,
-  );
+  logger.info("Webhook granting credits", {
+    event: "webhook.credit_grant",
+    userId,
+    productName,
+    credits: credits === CREDIT_UNLIMITED ? "UNLIMITED" : credits,
+    priceCents: finalPriceCents,
+    tag,
+  });
 
   // 1. Log the transaction with embedded price metadata
   const { error: txError } = await db.from("credit_transactions").insert({
@@ -70,13 +82,17 @@ export async function handleCreditGrant(
     description: `Credit grant for ${productName}${tag} [PRICE:${finalPriceCents}]`,
   });
   if (txError) {
-    console.error(
-      `[webhook][ERROR] credit_transactions.insert FAILED:`,
-      txError.message,
-      txError.details,
-    );
+    logger.error("Webhook credit transaction insert failed", {
+      event: "webhook.credit_transaction_insert_failed",
+      userId,
+      error: txError.message,
+      details: txError.details,
+    });
   } else {
-    console.log(`[webhook] credit_transactions.insert SUCCESS`);
+    logger.info("Webhook credit transaction inserted", {
+      event: "webhook.credit_transaction_inserted",
+      userId,
+    });
   }
 
   // 1b. Update total spent in profile
@@ -86,7 +102,11 @@ export async function handleCreditGrant(
       p_amount: finalPriceCents,
     });
     if (rpcError) {
-      console.error(`[webhook][ERROR] increment_total_spent RPC FAILED:`, rpcError.message);
+      logger.error("Webhook increment_total_spent RPC failed", {
+        event: "webhook.increment_total_spent_failed",
+        userId,
+        error: rpcError.message,
+      });
     }
   }
 
@@ -99,13 +119,17 @@ export async function handleCreditGrant(
         { onConflict: "user_id" },
       );
     if (credErr) {
-      console.error(
-        `[webhook][ERROR] credits.upsert (unlimited) FAILED:`,
-        credErr.message,
-        credErr.details,
-      );
+      logger.error("Webhook unlimited credits upsert failed", {
+        event: "webhook.credits_unlimited_upsert_failed",
+        userId,
+        error: credErr.message,
+        details: credErr.details,
+      });
     } else {
-      console.log(`[webhook] credits.upsert (unlimited) SUCCESS`);
+      logger.info("Webhook unlimited credits upserted", {
+        event: "webhook.credits_unlimited_upserted",
+        userId,
+      });
     }
   } else {
     const { data: wallet, error: walletErr } = await db
@@ -115,22 +139,31 @@ export async function handleCreditGrant(
       .single();
 
     if (walletErr) {
-      console.log(
-        `[webhook] No existing credits wallet for user ${userId}, will create one. Error: ${walletErr.message}`,
-      );
+      logger.info("Webhook no existing credits wallet, creating one", {
+        event: "webhook.credits_wallet_missing",
+        userId,
+        error: walletErr.message,
+      });
     }
 
     const currentBalance = wallet?.balance ?? 0;
 
     if (currentBalance === CREDIT_UNLIMITED) {
-      console.log(`[webhook] User ${userId} already has unlimited credits, skipping`);
+      logger.info("Webhook skipped wallet update because user is unlimited", {
+        event: "webhook.credits_wallet_unlimited_skip",
+        userId,
+      });
       return;
     }
 
     const newBalance = currentBalance + credits;
-    console.log(
-      `[webhook] Credits: current=${currentBalance}, adding=${credits}, new=${newBalance}`,
-    );
+    logger.info("Webhook credits wallet update calculated", {
+      event: "webhook.credits_wallet_calculated",
+      userId,
+      currentBalance,
+      creditsToAdd: credits,
+      newBalance,
+    });
 
     const { error: credErr } = await db.from("credits").upsert(
       {
@@ -141,14 +174,19 @@ export async function handleCreditGrant(
       { onConflict: "user_id" },
     );
     if (credErr) {
-      console.error(
-        `[webhook][ERROR] credits.upsert FAILED:`,
-        credErr.message,
-        credErr.details,
-        credErr.hint,
-      );
+      logger.error("Webhook credits upsert failed", {
+        event: "webhook.credits_upsert_failed",
+        userId,
+        error: credErr.message,
+        details: credErr.details,
+        hint: credErr.hint,
+      });
     } else {
-      console.log(`[webhook] credits.upsert SUCCESS: balance now ${newBalance} for user ${userId}`);
+      logger.info("Webhook credits upserted", {
+        event: "webhook.credits_upserted",
+        userId,
+        newBalance,
+      });
     }
   }
 }

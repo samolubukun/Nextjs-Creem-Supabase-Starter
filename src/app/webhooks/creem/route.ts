@@ -1,6 +1,8 @@
 import { Webhook } from "@creem_io/nextjs";
+import { buildCacheKey, deleteCacheKey } from "@/lib/cache";
 import { getPlanName, PRODUCT_PRICE_MAPPING } from "@/lib/credits-config";
 import { sendPaymentConfirmationEmail } from "@/lib/email-service";
+import { logger } from "@/lib/logger";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { buildSubscriptionUpdate, buildSubscriptionUpsert, handleCreditGrant } from "./handlers";
 
@@ -20,19 +22,28 @@ type SubscriptionPaidEventExtras = {
   currency?: string;
 };
 
+async function invalidateAdminCache() {
+  await Promise.all([
+    deleteCacheKey(buildCacheKey("admin", "profiles")),
+    deleteCacheKey(buildCacheKey("admin", "credit_transactions")),
+    deleteCacheKey(buildCacheKey("admin", "subscriptions")),
+    deleteCacheKey(buildCacheKey("admin", "counts")),
+  ]);
+}
+
 export const POST = Webhook({
   webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
 
   onCheckoutCompleted: async (event) => {
     const db = getSupabaseAdmin();
     const eventExtras = event as CheckoutEventExtras;
-    console.log(`[webhook] checkout.completed fired. webhookId=${event.webhookId}`);
-    console.log(`[webhook] metadata:`, JSON.stringify(event.metadata));
-    console.log(`[webhook] product: id=${event.product.id}, name=${event.product.name}`);
-    console.log(
-      `[webhook] subscription:`,
-      event.subscription ? `id=${event.subscription.id}` : "none (one-time)",
-    );
+    logger.info("Webhook checkout.completed fired", {
+      event: "webhook.checkout.completed",
+      webhookId: event.webhookId,
+      productId: event.product.id,
+      productName: event.product.name,
+      subscriptionId: event.subscription?.id,
+    });
 
     const row = buildSubscriptionUpsert({
       metadata: event.metadata as { user_id?: string } | undefined,
@@ -47,10 +58,17 @@ export const POST = Webhook({
         : undefined,
     });
 
-    console.log(`[webhook] built row:`, JSON.stringify(row));
+    logger.info("Webhook subscription row built", {
+      event: "webhook.checkout.subscription_row",
+      webhookId: event.webhookId,
+      row,
+    });
 
     if (!row.user_id) {
-      console.log("[webhook][ERROR] checkout.completed: no user_id in metadata, skipping");
+      logger.warn("Webhook skipped: missing metadata.user_id", {
+        event: "webhook.checkout.missing_user_id",
+        webhookId: event.webhookId,
+      });
       return;
     }
 
@@ -62,7 +80,10 @@ export const POST = Webhook({
       .single();
 
     if (existing) {
-      console.log(`[webhook] duplicate event ${event.webhookId}, skipping`);
+      logger.info("Webhook duplicate skipped", {
+        event: "webhook.duplicate",
+        webhookId: event.webhookId,
+      });
       return;
     }
 
@@ -71,14 +92,19 @@ export const POST = Webhook({
       .from("subscriptions")
       .upsert(row, { onConflict: "user_id" });
     if (subError) {
-      console.error(
-        `[webhook][ERROR] subscriptions.upsert FAILED:`,
-        subError.message,
-        subError.details,
-        subError.hint,
-      );
+      logger.error("Webhook subscriptions upsert failed", {
+        event: "webhook.subscriptions_upsert_failed",
+        webhookId: event.webhookId,
+        error: subError.message,
+        details: subError.details,
+        hint: subError.hint,
+      });
     } else {
-      console.log(`[webhook] subscriptions.upsert SUCCESS for user ${row.user_id}`);
+      logger.info("Webhook subscriptions upserted", {
+        event: "webhook.subscriptions_upserted",
+        webhookId: event.webhookId,
+        userId: row.user_id,
+      });
     }
 
     // Record webhook event AFTER critical operations succeed
@@ -103,7 +129,10 @@ export const POST = Webhook({
     // Store license key if present in the event
     const licenseKey = eventExtras.feature?.license?.key;
     if (licenseKey && row.user_id) {
-      console.log(`[webhook] Storing license key for user ${row.user_id}`);
+      logger.info("Webhook storing license key", {
+        event: "webhook.license_store_start",
+        userId: row.user_id,
+      });
       const { error: licError } = await db.from("licenses").upsert(
         {
           user_id: row.user_id,
@@ -115,7 +144,13 @@ export const POST = Webhook({
         },
         { onConflict: "creem_license_key" },
       );
-      if (licError) console.error(`[webhook][ERROR] licenses.upsert FAILED:`, licError.message);
+      if (licError) {
+        logger.error("Webhook license upsert failed", {
+          event: "webhook.licenses_upsert_failed",
+          userId: row.user_id,
+          error: licError.message,
+        });
+      }
     }
 
     await handleCreditGrant(
@@ -139,12 +174,17 @@ export const POST = Webhook({
         status: "open",
       });
     }
+
+    await invalidateAdminCache();
   },
 
   onSubscriptionPaid: async (event) => {
     const db = getSupabaseAdmin();
     const eventExtras = event as SubscriptionPaidEventExtras;
-    console.log(`[webhook] subscription.paid fired. subscription_id=${event.id}`);
+    logger.info("Webhook subscription.paid fired", {
+      event: "webhook.subscription.paid",
+      subscriptionId: event.id,
+    });
     const update = buildSubscriptionUpdate("active", {
       current_period_end_date: event.current_period_end_date,
     });
@@ -153,9 +193,16 @@ export const POST = Webhook({
       .update(update)
       .eq("creem_subscription_id", event.id);
     if (updateErr) {
-      console.error(`[webhook][ERROR] subscription.paid update FAILED:`, updateErr.message);
+      logger.error("Webhook subscription.paid update failed", {
+        event: "webhook.subscription_paid_update_failed",
+        subscriptionId: event.id,
+        error: updateErr.message,
+      });
     } else {
-      console.log(`[webhook] subscription.paid update SUCCESS for sub ${event.id}`);
+      logger.info("Webhook subscription.paid updated", {
+        event: "webhook.subscription_paid_updated",
+        subscriptionId: event.id,
+      });
     }
 
     // Grant credits for the new period
@@ -166,10 +213,11 @@ export const POST = Webhook({
       .single();
 
     if (subFetchErr) {
-      console.error(
-        `[webhook][ERROR] subscription.paid: could not find subscription row for sub ${event.id}:`,
-        subFetchErr.message,
-      );
+      logger.error("Webhook subscription.paid could not find subscription row", {
+        event: "webhook.subscription_paid_missing_row",
+        subscriptionId: event.id,
+        error: subFetchErr.message,
+      });
     }
 
     if (sub?.user_id && sub.creem_product_id) {
@@ -193,10 +241,13 @@ export const POST = Webhook({
         status: "open",
       });
     } else {
-      console.error(
-        `[webhook][ERROR] subscription.paid: no matching subscription found for creem_subscription_id=${event.id}`,
-      );
+      logger.error("Webhook subscription.paid missing matching subscription", {
+        event: "webhook.subscription_paid_no_match",
+        subscriptionId: event.id,
+      });
     }
+
+    await invalidateAdminCache();
   },
 
   onSubscriptionCanceled: async (event) => {
@@ -221,6 +272,8 @@ export const POST = Webhook({
         status: "open",
       });
     }
+
+    await invalidateAdminCache();
   },
 
   onSubscriptionExpired: async (event) => {
@@ -316,6 +369,8 @@ export const POST = Webhook({
         status: "open",
       });
     }
+
+    await invalidateAdminCache();
   },
 
   onRefundCreated: async (event) => {
@@ -362,15 +417,21 @@ export const POST = Webhook({
 
   onGrantAccess: async ({ reason, customer, metadata }) => {
     const userId = (metadata as Record<string, string> | undefined)?.referenceId;
-    console.log(
-      `[webhook] Grant access (${reason}) for user ${userId ?? "unknown"}, customer ${customer.email}`,
-    );
+    logger.info("Webhook grant access", {
+      event: "webhook.grant_access",
+      reason,
+      userId: userId ?? "unknown",
+      customerEmail: customer.email,
+    });
   },
 
   onRevokeAccess: async ({ reason, customer, metadata }) => {
     const userId = (metadata as Record<string, string> | undefined)?.referenceId;
-    console.log(
-      `[webhook] Revoke access (${reason}) for user ${userId ?? "unknown"}, customer ${customer.email}`,
-    );
+    logger.info("Webhook revoke access", {
+      event: "webhook.revoke_access",
+      reason,
+      userId: userId ?? "unknown",
+      customerEmail: customer.email,
+    });
   },
 });
