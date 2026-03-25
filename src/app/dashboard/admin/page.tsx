@@ -10,7 +10,9 @@ import {
 } from "lucide-react";
 import { redirect } from "next/navigation";
 import { DeleteUserButton } from "@/components/admin/delete-user-button";
+import { buildCacheKey, CACHE_TTL, getOrSetCache } from "@/lib/cache";
 import { formatCurrency } from "@/lib/currency";
+import { logger } from "@/lib/logger";
 import { createSupabaseServer } from "@/lib/supabase/server";
 
 type AdminSubscription = {
@@ -55,15 +57,25 @@ export default async function AdminCRMPage() {
     error: authError,
   } = await supabaseAdmin.auth.admin.listUsers();
 
-  // Fetch profiles to get total_spent_cents
-  const { data: profileRecords } = await supabaseAdmin
-    .from("profiles")
-    .select("id, total_spent_cents");
+  const profileRecords = await getOrSetCache(
+    buildCacheKey("admin", "profiles"),
+    async () => {
+      const { data } = await supabaseAdmin.from("profiles").select("id, total_spent_cents");
+      return data ?? [];
+    },
+    { ttlSeconds: CACHE_TTL.ADMIN_STATS_SECONDS },
+  );
 
-  // Fetch all credit transactions to calculate legacy revenue (fallback)
-  const { data: allTransactions } = await supabaseAdmin
-    .from("credit_transactions")
-    .select("user_id, description");
+  const allTransactions = await getOrSetCache(
+    buildCacheKey("admin", "credit_transactions"),
+    async () => {
+      const { data } = await supabaseAdmin
+        .from("credit_transactions")
+        .select("user_id, description");
+      return data ?? [];
+    },
+    { ttlSeconds: CACHE_TTL.ADMIN_STATS_SECONDS },
+  );
 
   const profiles = (users || []).map((u) => {
     const profile = profileRecords?.find((p) => p.id === u.id);
@@ -84,27 +96,44 @@ export default async function AdminCRMPage() {
     };
   });
 
-  // Fetch subscriptions
-  const { data: subscriptions } = await supabaseAdmin
-    .from("subscriptions")
-    .select("user_id, status, product_name, seats, current_period_end");
+  const subscriptions = await getOrSetCache(
+    buildCacheKey("admin", "subscriptions"),
+    async () => {
+      const { data } = await supabaseAdmin
+        .from("subscriptions")
+        .select("user_id, status, product_name, seats, current_period_end");
+      return data ?? [];
+    },
+    { ttlSeconds: CACHE_TTL.ADMIN_STATS_SECONDS },
+  );
 
-  // Fetch other stats
-  const { count: activeLicenses } = await supabaseAdmin
-    .from("licenses")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "active");
+  const stats = await getOrSetCache(
+    buildCacheKey("admin", "counts"),
+    async () => {
+      const [{ count: activeLicenses }, { count: totalPurchases }, { count: totalChats }] =
+        await Promise.all([
+          supabaseAdmin
+            .from("licenses")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "active"),
+          supabaseAdmin.from("purchases").select("*", { count: "exact", head: true }),
+          supabaseAdmin.from("chats").select("*", { count: "exact", head: true }),
+        ]);
 
-  const { count: totalPurchases } = await supabaseAdmin
-    .from("purchases")
-    .select("*", { count: "exact", head: true });
-
-  const { count: totalChats } = await supabaseAdmin
-    .from("chats")
-    .select("*", { count: "exact", head: true });
+      return {
+        activeLicenses: activeLicenses ?? 0,
+        totalPurchases: totalPurchases ?? 0,
+        totalChats: totalChats ?? 0,
+      };
+    },
+    { ttlSeconds: CACHE_TTL.ADMIN_STATS_SECONDS },
+  );
 
   if (authError) {
-    console.error("Error fetching users:", authError);
+    logger.error("Admin user list fetch failed", {
+      event: "admin.users_fetch_failed",
+      error: authError.message,
+    });
   }
 
   const profilesWithSubs = profiles?.map((p) => ({
@@ -173,7 +202,7 @@ export default async function AdminCRMPage() {
           <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">
             Active Licenses
           </p>
-          <p className="text-3xl font-black text-foreground">{activeLicenses || 0}</p>
+          <p className="text-3xl font-black text-foreground">{stats.activeLicenses}</p>
         </div>
 
         {/* One-Time Purchases */}
@@ -182,7 +211,7 @@ export default async function AdminCRMPage() {
           <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">
             LTD Purchases
           </p>
-          <p className="text-3xl font-black text-foreground">{totalPurchases || 0}</p>
+          <p className="text-3xl font-black text-foreground">{stats.totalPurchases}</p>
         </div>
 
         {/* Total AI Chats */}
@@ -191,7 +220,7 @@ export default async function AdminCRMPage() {
           <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">
             AI Conversations
           </p>
-          <p className="text-3xl font-black text-foreground">{totalChats || 0}</p>
+          <p className="text-3xl font-black text-foreground">{stats.totalChats}</p>
         </div>
       </div>
 

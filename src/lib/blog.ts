@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
+import { buildCacheKey, CACHE_TTL, getOrSetCache } from "@/lib/cache";
 
 const BLOG_DIRECTORY = path.join(process.cwd(), "src/content/blog");
 
@@ -14,38 +15,54 @@ export type PostMetadata = {
 };
 
 export async function getBlogPosts(): Promise<PostMetadata[]> {
-  const files = fs.readdirSync(BLOG_DIRECTORY);
+  const cacheKey = buildCacheKey("blog", "posts");
 
-  const posts = files
-    .filter((file) => file.endsWith(".mdx"))
-    .map((file) => {
-      const filePath = path.join(BLOG_DIRECTORY, file);
-      const fileContent = fs.readFileSync(filePath, "utf8");
-      const { data } = matter(fileContent);
+  return getOrSetCache(
+    cacheKey,
+    async () => {
+      const files = fs.readdirSync(BLOG_DIRECTORY);
 
-      return {
-        ...data,
-        slug: file.replace(".mdx", ""),
-      } as PostMetadata;
-    });
+      const posts = files
+        .filter((file) => file.endsWith(".mdx"))
+        .map((file) => {
+          const filePath = path.join(BLOG_DIRECTORY, file);
+          const fileContent = fs.readFileSync(filePath, "utf8");
+          const { data } = matter(fileContent);
 
-  return posts.sort(
-    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+          return {
+            ...data,
+            slug: file.replace(".mdx", ""),
+          } as PostMetadata;
+        });
+
+      return posts.sort(
+        (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+      );
+    },
+    { ttlSeconds: CACHE_TTL.BLOG_LIST_SECONDS },
   );
 }
 
 export async function getBlogPostBySlug(slug: string) {
-  const filePath = path.join(BLOG_DIRECTORY, `${slug}.mdx`);
-  if (!fs.existsSync(filePath)) return null;
+  const cacheKey = buildCacheKey("blog", "post", slug);
 
-  const fileContent = fs.readFileSync(filePath, "utf8");
-  const { data, content } = matter(fileContent);
+  return getOrSetCache(
+    cacheKey,
+    async () => {
+      const filePath = path.join(BLOG_DIRECTORY, `${slug}.mdx`);
+      if (!fs.existsSync(filePath)) return null;
 
-  return {
-    metadata: {
-      ...data,
-      slug,
-    } as PostMetadata,
-    content,
-  };
+      const fileContent = fs.readFileSync(filePath, "utf8");
+      const { data, content } = matter(fileContent);
+
+      return {
+        metadata: {
+          ...data,
+          slug,
+        } as PostMetadata,
+        content,
+      };
+    },
+    { ttlSeconds: CACHE_TTL.BLOG_POST_SECONDS },
+  );
 }
