@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { isUnlimited } from "@/app/api/credits/helpers";
+import { logger } from "@/lib/logger";
+import { enforceRateLimit, rateLimitPolicies } from "@/lib/rate-limit";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServer } from "@/lib/supabase/server";
 
@@ -41,6 +43,11 @@ export async function POST(req: NextRequest) {
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rateLimit = await enforceRateLimit(req, rateLimitPolicies.chat, user.id);
+  if (!rateLimit.ok) {
+    return rateLimit.response;
   }
 
   const db = getSupabaseAdmin();
@@ -145,13 +152,25 @@ export async function POST(req: NextRequest) {
       });
 
       if (spendErr) {
-        console.error("AI credit deduction error:", spendErr.message);
+        logger.error("AI credit deduction failed", {
+          event: "chat.credit_deduction_failed",
+          userId: user.id,
+          error: spendErr.message,
+        });
       }
     }
 
-    return NextResponse.json({ content });
+    const response = NextResponse.json({ content });
+    rateLimit.headers.forEach((value, key) => {
+      response.headers.set(key, value);
+    });
+    return response;
   } catch (error) {
-    console.error("AI Assistant Error:", error);
+    logger.error("AI assistant request failed", {
+      event: "chat.request_failed",
+      userId: user.id,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
     return NextResponse.json({ error: "Failed to communicate with AI provider" }, { status: 500 });
   }
 }

@@ -1,24 +1,10 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { sendWelcomeEmail } from "@/lib/email-service";
+import { logger } from "@/lib/logger";
+import { enforceRateLimit, rateLimitPolicies } from "@/lib/rate-limit";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MAX_REQUESTS = 5;
-const WINDOW_MS = 10 * 60 * 1000;
-const requestLog = new Map<string, number[]>();
-
-function getClientIp(request: Request): string {
-  const xForwardedFor = request.headers.get("x-forwarded-for");
-  if (xForwardedFor) {
-    return xForwardedFor.split(",")[0]?.trim() || "unknown";
-  }
-
-  const realIp = request.headers.get("x-real-ip");
-  if (realIp) return realIp;
-
-  return "unknown";
-}
-
-function isOriginAllowed(request: Request): boolean {
+function isOriginAllowed(request: NextRequest): boolean {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   if (!appUrl) return true;
 
@@ -29,30 +15,15 @@ function isOriginAllowed(request: Request): boolean {
   return origin === allowedOrigin;
 }
 
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const previous = requestLog.get(ip) ?? [];
-  const recent = previous.filter((timestamp) => now - timestamp < WINDOW_MS);
-
-  if (recent.length >= MAX_REQUESTS) {
-    requestLog.set(ip, recent);
-    return true;
-  }
-
-  recent.push(now);
-  requestLog.set(ip, recent);
-  return false;
-}
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     if (!isOriginAllowed(request)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const ip = getClientIp(request);
-    if (isRateLimited(ip)) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    const rateLimit = await enforceRateLimit(request, rateLimitPolicies.welcome);
+    if (!rateLimit.ok) {
+      return rateLimit.response;
     }
 
     const { email, firstName } = await request.json();
@@ -69,9 +40,16 @@ export async function POST(request: Request) {
       firstName: typeof firstName === "string" ? firstName : "there",
     });
 
-    return NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
+    rateLimit.headers.forEach((value, key) => {
+      response.headers.set(key, value);
+    });
+    return response;
   } catch (error) {
-    console.error("[Welcome API] Error:", error);
+    logger.error("Welcome email route failed", {
+      event: "welcome_email.failed",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
