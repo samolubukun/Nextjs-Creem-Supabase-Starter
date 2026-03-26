@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 
 const meta = {
   title: "Auth/SignupForm",
-} satisfies Meta<any>;
+} satisfies Meta;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

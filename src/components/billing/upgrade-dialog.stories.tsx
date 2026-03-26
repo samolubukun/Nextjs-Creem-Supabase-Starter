@@ -23,7 +23,7 @@ const meta = {
       </div>
     ),
   ],
-} satisfies Meta<any>;
+} satisfies Meta<typeof UpgradeDialog>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

@@ -2,11 +2,10 @@ import type { Meta, StoryObj } from "@storybook/nextjs";
 import { CreditCard, Key, TrendingUp, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 
 const meta = {
   title: "Dashboard/StatCards",
-} satisfies Meta<any>;
+} satisfies Meta;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

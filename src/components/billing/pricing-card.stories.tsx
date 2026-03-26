@@ -60,7 +60,7 @@ const meta = {
       </div>
     ),
   ],
-} satisfies Meta<any>;
+} satisfies Meta<typeof PricingCard>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
