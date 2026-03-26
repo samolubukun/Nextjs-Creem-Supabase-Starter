@@ -320,6 +320,31 @@ src/app/
 - Chat sessions/messages persist in `chats` and `chat_messages`
 - 1 credit deducted per response for non-unlimited users
 
+### 7) Transactional Emails
+
+- New user onboarding can trigger `POST /api/auth/welcome` to send the welcome template
+- Payment confirmation is sent from webhook processing on successful checkout completion
+- Email transport is powered by Resend when `RESEND_API_KEY` is configured
+
+### 8) File Storage Upload and Access
+
+- Client requests upload metadata/presigned URL from `GET|POST /api/storage/presign`
+- Browser uploads directly to S3-compatible storage with the returned signed `PUT` URL
+- App finalizes metadata in `files` via `POST /api/storage/complete`
+- File listing and secure downloads are served by `GET /api/storage/files` and `GET /api/storage/download`
+
+### 9) Rate Limiting and API Guardrails
+
+- Sensitive routes are guarded with Upstash-backed limits in `src/lib/rate-limit.ts`
+- Limit keys prefer authenticated user identity and fall back to client IP
+- Current protected routes include chat, checkout, subscriptions, and welcome email endpoints
+
+### 10) Cache and Admin Invalidation
+
+- Expensive admin aggregates and blog reads use cache-aside helpers in `src/lib/cache.ts`
+- Webhook mutations clear targeted admin cache keys after billing/subscription state changes
+- Cached keys are namespaced to keep invalidation predictable across surfaces
+
 ## Connecting Real Services
 
 1. Copy env template and set values:

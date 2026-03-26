@@ -126,6 +126,33 @@ export const POST = Webhook({
     const productName = row.product_name ?? "Product";
     const isOneTime = !event.subscription?.id || productName.toLowerCase().includes("nova pro max");
 
+    if (isOneTime && row.user_id) {
+      const { error: purchaseError } = await db.from("purchases").insert({
+        user_id: row.user_id,
+        creem_customer_id: row.creem_customer_id,
+        creem_product_id: row.creem_product_id,
+        product_name: productName,
+      });
+
+      if (purchaseError) {
+        logger.error("Webhook purchases insert failed", {
+          event: "webhook.purchases_insert_failed",
+          webhookId: event.webhookId,
+          userId: row.user_id,
+          error: purchaseError.message,
+          details: purchaseError.details,
+          hint: purchaseError.hint,
+        });
+      } else {
+        logger.info("Webhook purchase inserted", {
+          event: "webhook.purchases_inserted",
+          webhookId: event.webhookId,
+          userId: row.user_id,
+          productId: row.creem_product_id,
+        });
+      }
+    }
+
     // Store license key if present in the event
     const licenseKey = eventExtras.feature?.license?.key;
     if (licenseKey && row.user_id) {
