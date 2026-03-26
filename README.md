@@ -504,15 +504,25 @@ npm run format         # Biome format + write
 npm test               # Vitest run
 npm run test:watch     # Vitest watch
 npm run test:coverage  # Coverage report
+npm run e2e            # Cypress interactive runner
+npm run e2e:run        # Cypress headless run (requires app running)
+npm run test:e2e       # Start app and run Cypress headless
+npm run test:e2e:ci    # Start production server and run Cypress headless
 npm run check          # Biome + tsc + vitest
 ```
 
 ## CI and Preview Deploys
 
 - GitHub Actions runs CI on pull requests and pushes to `main` via `.github/workflows/ci.yml`
-- CI pipeline runs linting, test coverage, production build, and uploads coverage artifacts
+- CI pipeline runs linting, test coverage, production build, Cypress E2E tests, and uploads artifacts
 - Vercel preview deploys are handled by Vercel Git integration (recommended for this boilerplate)
 - To enable previews, connect the repo in Vercel and import your environment variables
+
+### E2E Coverage (Cypress)
+
+- Specs live in `tests/e2e/` and currently cover auth pages, checkout unauthorized response behavior, and dashboard access guard
+- Cypress config is in `cypress.config.js` and uses `http://127.0.0.1:3000` as base URL
+- CI executes E2E tests through `npm run test:e2e:ci` after build
 
 ## Deployment Checklist
 

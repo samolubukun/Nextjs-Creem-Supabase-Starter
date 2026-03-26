@@ -12,7 +12,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "check": "biome check src/ && tsc --noEmit && vitest run"
+    "check": "biome check src/ && tsc --noEmit && vitest run",
+    "e2e": "cypress open",
+    "e2e:run": "cypress run",
+    "test:e2e": "start-server-and-test \"next dev -p 3000\" http://127.0.0.1:3000 \"cypress run\"",
+    "test:e2e:ci": "start-server-and-test \"next start -p 3000\" http://127.0.0.1:3000 \"cypress run\""
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.916.0",
@@ -64,11 +68,13 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^4.0.18",
+    "cypress": "^15.13.0",
     "dotenv": "^17.3.1",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "jsdom": "^27.0.1",
+    "start-server-and-test": "^3.0.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.0.18"
