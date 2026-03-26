@@ -523,6 +523,7 @@ npm run check          # Biome + tsc + vitest
 - Specs live in `tests/e2e/` and currently cover auth pages, checkout unauthorized response behavior, and dashboard access guard
 - Cypress config is in `cypress.config.js` and uses `http://127.0.0.1:3000` as base URL
 - CI executes E2E tests through `npm run test:e2e:ci` after build
+- CI injects safe placeholder env vars for Supabase/Creem so route guards and auth pages can boot in test mode
 
 ## Deployment Checklist
 

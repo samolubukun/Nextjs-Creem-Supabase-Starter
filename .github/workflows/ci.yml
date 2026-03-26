@@ -18,6 +18,14 @@ jobs:
     name: Lint, Test, Build
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: test-service-role-key
+      CREEM_API_KEY: creem_test_dummy
+      CREEM_WEBHOOK_SECRET: whsec_dummy
+      ADMIN_EMAILS: admin@example.com
 
     steps:
       - name: Checkout
