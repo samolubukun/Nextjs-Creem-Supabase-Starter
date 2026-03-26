@@ -1,15 +1,11 @@
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServer } from "@/lib/supabase/server";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
 export async function deleteUserAction(userId: string) {
+  const supabaseAdmin = getSupabaseAdmin();
   const authSupabase = await createSupabaseServer();
   const {
     data: { user: adminUser },

@@ -1,4 +1,3 @@
-import { createClient } from "@supabase/supabase-js";
 import {
   CreditCard,
   DollarSign,
@@ -13,7 +12,10 @@ import { DeleteUserButton } from "@/components/admin/delete-user-button";
 import { buildCacheKey, CACHE_TTL, getOrSetCache } from "@/lib/cache";
 import { formatCurrency } from "@/lib/currency";
 import { logger } from "@/lib/logger";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServer } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
 
 type AdminSubscription = {
   status: string | null;
@@ -30,12 +32,6 @@ type AdminProfileRow = {
   subscriptions?: AdminSubscription[];
 };
 
-// Initialize Supabase Admin Client
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
 export default async function AdminCRMPage() {
   const authSupabase = await createSupabaseServer();
   const {
@@ -50,6 +46,8 @@ export default async function AdminCRMPage() {
   if (!user || !user.email || !adminEmails.includes(user.email)) {
     redirect("/dashboard");
   }
+
+  const supabaseAdmin = getSupabaseAdmin();
 
   // Fetch all users from Auth directly (more reliable than profiles)
   const {
