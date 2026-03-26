@@ -507,6 +507,13 @@ npm run test:coverage  # Coverage report
 npm run check          # Biome + tsc + vitest
 ```
 
+## CI and Preview Deploys
+
+- GitHub Actions runs CI on pull requests and pushes to `main` via `.github/workflows/ci.yml`
+- CI pipeline runs linting, test coverage, production build, and uploads coverage artifacts
+- Vercel preview deploys are handled by Vercel Git integration (recommended for this boilerplate)
+- To enable previews, connect the repo in Vercel and import your environment variables
+
 ## Deployment Checklist
 
 1. Create Supabase project and apply `supabase/db_schema.sql`.
