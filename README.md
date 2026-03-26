@@ -508,6 +508,8 @@ npm run e2e            # Cypress interactive runner
 npm run e2e:run        # Cypress headless run (requires app running)
 npm run test:e2e       # Start app and run Cypress headless
 npm run test:e2e:ci    # Start production server and run Cypress headless
+npm run storybook      # Storybook component explorer
+npm run build-storybook # Storybook static build
 npm run check          # Biome + tsc + vitest
 ```
 
@@ -524,6 +526,12 @@ npm run check          # Biome + tsc + vitest
 - Cypress config is in `cypress.config.js` and uses `http://127.0.0.1:3000` as base URL
 - CI executes E2E tests through `npm run test:e2e:ci` after build
 - CI injects safe placeholder env vars for Supabase/Creem so route guards and auth pages can boot in test mode
+
+### Storybook
+
+- Storybook is configured for this Next.js app with Tailwind global styles via `.storybook/preview.ts`
+- Stories live alongside components (e.g. `src/components/ui/button.stories.tsx`)
+- Current starter stories cover UI primitives and billing card composition
 
 ## Deployment Checklist
 
