@@ -531,7 +531,9 @@ npm run check          # Biome + tsc + vitest
 
 - Storybook is configured for this Next.js app with Tailwind global styles via `.storybook/preview.ts`
 - Stories live alongside components (e.g. `src/components/ui/button.stories.tsx`)
-- Current starter stories cover UI primitives and billing card composition
+- Stories cover UI primitives, billing flows, auth forms, chat interface, alert banners, and dashboard stat cards
+- Run `npm run storybook` to explore, `npm run build-storybook` for static output
+- CI builds Storybook to catch config breakage early
 
 ## Deployment Checklist
 
