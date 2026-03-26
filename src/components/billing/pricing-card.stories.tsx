@@ -60,24 +60,26 @@ const meta = {
       </div>
     ),
   ],
-} satisfies Meta<typeof PricingCard>;
+} satisfies Meta;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
+type StoryWithArgs = StoryObj<{ plan: PricingPlan; discountCode?: string }>;
 
 export const Starter: Story = {
   args: { plan: starterPlan },
-};
+} satisfies StoryWithArgs;
 
 export const Creator: Story = {
   args: { plan: creatorPlan },
-};
+} satisfies StoryWithArgs;
 
 export const Pro: Story = {
   args: { plan: proPlan },
-};
+} satisfies StoryWithArgs;
 
 export const AllPlans: Story = {
+  args: { plan: starterPlan },
   render: () => (
     <div className="flex flex-col md:flex-row gap-6 p-6 items-stretch">
       <div className="flex-1">
@@ -91,4 +93,4 @@ export const AllPlans: Story = {
       </div>
     </div>
   ),
-};
+} satisfies StoryWithArgs;
