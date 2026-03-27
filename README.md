@@ -1,18 +1,18 @@
 # SAASXCREEM
 
 ![Next.js](https://img.shields.io/badge/Next.js-000?style=for-the-badge&logo=next.js&logoColor=white)
-![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![Postgres](https://img.shields.io/badge/Postgres-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Creem](https://img.shields.io/badge/Creem-000?style=for-the-badge&logoColor=white)
-
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![Tailwind](https://img.shields.io/badge/Tailwind-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 ![Upstash](https://img.shields.io/badge/Upstash-00C9B7?style=for-the-badge&logo=data:image/svg+xml;base64,PCFET0NUWVBFIHN2Zz48c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIiBmaWxsPSIjMDBDQUI3Ii8+PHRleHQgeD0iMTIiIHk9IjE2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI5IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiPlU8L3RleHQ+PC9zdmc+&logoColor=white)
 ![S3](https://img.shields.io/badge/S3-FF9900?style=for-the-badge&logo=amazons3&logoColor=white)
-![Vitest](https://img.shields.io/badge/Vitest-FECC00?style=for-the-badge&logo=vitest&logoColor=black)
-![Cypress](https://img.shields.io/badge/Cypress-69D3A7?style=for-the-badge&logo=cypress&logoColor=white)
+
+![Radix](https://img.shields.io/badge/Radix%20UI-16161D?style=for-the-badge&logoColor=white)
+![Resend](https://img.shields.io/badge/Resend-000?style=for-the-badge&logoColor=white)
+![PostHog](https://img.shields.io/badge/PostHog-000?style=for-the-badge&logoColor=white)
+![Drizzle](https://img.shields.io/badge/Drizzle-C5F74F?style=for-the-badge&logo=drizzle&logoColor=black)
 ![Storybook](https://img.shields.io/badge/Storybook-FF4785?style=for-the-badge&logo=storybook&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000?style=for-the-badge&logo=vercel&logoColor=white)
 
 Production-focused SaaS boilerplate built with Next.js 16, Supabase, and Creem.
 
