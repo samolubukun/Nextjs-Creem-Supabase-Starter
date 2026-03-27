@@ -1,4 +1,8 @@
+<div align="center">
+
 # SAASXCREEM
+
+**Next.js, Creem & Supabase SaaS Boilerplate**
 
 ![Next.js](https://img.shields.io/badge/Next.js-000?style=for-the-badge&logo=next.js&logoColor=white)
 ![Creem](https://img.shields.io/badge/Creem-FFBE98?style=for-the-badge&logoColor=black)
@@ -13,6 +17,8 @@
 ![PostHog](https://img.shields.io/badge/PostHog-F54E00?style=for-the-badge&logoColor=white)
 ![Drizzle](https://img.shields.io/badge/Drizzle-C5F74F?style=for-the-badge&logo=drizzle&logoColor=black)
 ![Vercel](https://img.shields.io/badge/Vercel-000?style=for-the-badge&logo=vercel&logoColor=white)
+
+</div>
 
 Production-focused SaaS boilerplate built with Next.js 16, Supabase, and Creem.
 
@@ -40,9 +46,9 @@ Open `http://localhost:3000`.
 
 ## Stack
 
-- Next.js 16 (App Router), React 19, TypeScript
-- Supabase (Auth, Postgres, RLS, Admin APIs)
-- Creem (`creem` + `@creem_io/nextjs`) for checkout/subscriptions/webhooks/licenses
+- [Next.js](https://nextjs.org) 16 (App Router), React 19, TypeScript
+- [Supabase](https://supabase.com) (Auth, Postgres, RLS, Admin APIs)
+- [Creem](https://creem.io) (`creem` + `@creem_io/nextjs`) for checkout/subscriptions/webhooks/licenses
 - Tailwind CSS 4 + Radix primitives + custom UI system
 - Upstash Redis for rate limiting and cache-aside patterns
 - S3-compatible storage (AWS S3, Cloudflare R2, MinIO) with presigned uploads
