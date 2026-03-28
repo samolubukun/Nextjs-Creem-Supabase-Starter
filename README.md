@@ -10,6 +10,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Tailwind](https://img.shields.io/badge/Tailwind-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 ![Upstash](https://img.shields.io/badge/Upstash-00C9B7?style=for-the-badge&logo=data:image/svg+xml;base64,PCFET0NUWVBFIHN2Zz48c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIiBmaWxsPSIjMDBDQUI3Ii8+PHRleHQgeD0iMTIiIHk9IjE2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI5IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiPlU8L3RleHQ+PC9zdmc+&logoColor=white)
+![BullMQ](https://img.shields.io/badge/BullMQ-000?style=for-the-badge&logoColor=white)
 
 ![S3](https://img.shields.io/badge/S3-FF9900?style=for-the-badge&logo=amazons3&logoColor=white)
 ![Radix](https://img.shields.io/badge/Radix%20UI-262633?style=for-the-badge&logoColor=white)
@@ -51,6 +52,7 @@ Open `http://localhost:3000`.
 - [Creem](https://creem.io) (`creem` + `@creem_io/nextjs`) for checkout/subscriptions/webhooks/licenses
 - Tailwind CSS 4 + Radix primitives + custom UI system
 - Upstash Redis for rate limiting and cache-aside patterns
+- BullMQ + ioredis for async job queues (email, webhook processing, audit logs)
 - S3-compatible storage (AWS S3, Cloudflare R2, MinIO) with presigned uploads
 - Vitest + Testing Library for unit and component tests
 - Cypress for end-to-end testing
@@ -75,6 +77,7 @@ Open `http://localhost:3000`.
 - Blog support: MDX-compatible content pipeline and dynamic slug pages
 - Storage: S3-compatible presigned uploads/downloads with file metadata (AWS S3, Cloudflare R2, MinIO)
 - Rate limiting: Upstash-powered request throttling on sensitive APIs (`/api/chat`, `/api/checkout`, `/api/subscriptions/*`, `/api/auth/welcome`)
+- Job queues: BullMQ-backed async processing for emails, webhook tasks, and audit logs with retries and exponential backoff
 - Structured logging: Better Stack-ready JSON logs for API and webhook flows with contextual event metadata
 - Redis caching: cache-aside optimization for expensive blog reads and admin dashboard aggregate queries
 - SEO + social: enhanced metadata, canonical tags, `sitemap.xml`, `robots.txt`, and generated Open Graph image endpoint
@@ -129,7 +132,30 @@ App runs at `http://localhost:3000`.
 - `ADMIN_EMAILS` (or `ADMIN_EMAIL`) for admin dashboard access
 - S3-compatible storage vars for uploads (`S3_BUCKET`, `S3_REGION`, credentials, endpoint options)
 - Upstash Redis: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (rate limiting + caching)
+- BullMQ Redis: `REDIS_URL` (async job queues — see below)
 - Better Stack logging: `BETTERSTACK_SOURCE_TOKEN`, `BETTERSTACK_INGESTING_HOST`
+
+### 4b) Configure BullMQ job queues (optional)
+
+BullMQ requires a **standard Redis TCP connection** (`redis://` or `rediss://`), separate from the Upstash HTTP Redis used for rate limiting.
+
+- **Upstash users**: your Redis database provides both a REST URL and a `rediss://` TCP URL — copy the TCP one from the Upstash console.
+- **Local dev**: install Redis and use `REDIS_URL=redis://localhost:6379`.
+- **Other hosts**: Railway, Render, Fly.io, Aiven, etc. all provide standard Redis URLs.
+
+Set in `.env.local`:
+
+```
+REDIS_URL=rediss://default:password@xxx.upstash.io:6379
+```
+
+When `REDIS_URL` is set, emails and webhook post-processing are automatically queued through BullMQ. When unset, the app falls back to direct synchronous processing — so BullMQ is optional but recommended for production.
+
+Start the worker process alongside Next.js:
+
+```bash
+npm run workers   # in a separate terminal
+```
 
 ### 5) Production hardening in this boilerplate
 
@@ -248,6 +274,15 @@ Webhook processing includes HMAC verification through the SDK wrapper and idempo
 - Create and fetch discounts through `GET|POST /api/discounts`
 - Supports percentage or fixed discounts, duration modes, and product-scoped applies-to lists
 
+### Job Queues (BullMQ)
+
+- Three queues: `email`, `webhook-processing`, `audit`
+- Welcome emails and payment confirmation emails are queued asynchronously
+- Webhook post-processing (license upserts, cache invalidation) runs off the request path
+- Automatic retries (3 attempts, exponential backoff)
+- Falls back to synchronous processing when `REDIS_URL` is not set
+- Worker process managed via `npm run workers`
+
 ### Admin and Monitoring
 
 - Admin access via `ADMIN_EMAILS` / `ADMIN_EMAIL`
@@ -266,9 +301,13 @@ src/
     blog/                   blog list + slug pages
   components/               feature and UI components
   lib/                      service clients and business helpers
+    bullmq/                 queue connection, types, producer, processors, workers
   db/                       drizzle schema + DB client
   emails/                   transactional email templates/components
   proxy.ts                  route protection and auth redirection
+
+scripts/
+  start-workers.ts          BullMQ worker process entry point
 
 supabase/
   db_schema.sql             canonical SQL bootstrap schema
@@ -351,21 +390,31 @@ src/app/
 - New user onboarding can trigger `POST /api/auth/welcome` to send the welcome template
 - Payment confirmation is sent from webhook processing on successful checkout completion
 - Email transport is powered by Resend when `RESEND_API_KEY` is configured
+- When BullMQ is active (`REDIS_URL` set), emails are enqueued and processed by the worker
 
-### 8) File Storage Upload and Access
+### 8) Job Queues (BullMQ)
+
+- Connection uses ioredis with a standard Redis TCP URL, separate from Upstash HTTP Redis
+- `src/lib/bullmq/producer.ts` exposes `enqueueEmail()`, `enqueueWebhookProcessing()`, `enqueueAuditLog()`
+- Workers in `src/lib/bullmq/workers.ts` run as a standalone process (`npm run workers`)
+- Each queue has configurable concurrency: email (5), webhook (3), audit (10)
+- Graceful shutdown on SIGINT/SIGTERM drains in-flight jobs before exiting
+- When `REDIS_URL` is not set, producers return `false` and callers fall back to direct execution — zero breaking changes
+
+### 9) File Storage Upload and Access
 
 - Client requests upload metadata/presigned URL from `GET|POST /api/storage/presign`
 - Browser uploads directly to S3-compatible storage with the returned signed `PUT` URL
 - App finalizes metadata in `files` via `POST /api/storage/complete`
 - File listing and secure downloads are served by `GET /api/storage/files` and `GET /api/storage/download`
 
-### 9) Rate Limiting and API Guardrails
+### 10) Rate Limiting and API Guardrails
 
 - Sensitive routes are guarded with Upstash-backed limits in `src/lib/rate-limit.ts`
 - Limit keys prefer authenticated user identity and fall back to client IP
 - Current protected routes include chat, checkout, subscriptions, and welcome email endpoints
 
-### 10) Cache and Admin Invalidation
+### 11) Cache and Admin Invalidation
 
 - Expensive admin aggregates and blog reads use cache-aside helpers in `src/lib/cache.ts`
 - Webhook mutations clear targeted admin cache keys after billing/subscription state changes
@@ -537,6 +586,7 @@ npm run test:e2e:ci    # Start production server and run Cypress headless
 npm run storybook      # Storybook component explorer
 npm run build-storybook # Storybook static build
 npm run check          # Biome + tsc + vitest
+npm run workers        # Start BullMQ worker process (requires REDIS_URL)
 ```
 
 ## CI and Preview Deploys
@@ -567,9 +617,10 @@ npm run check          # Biome + tsc + vitest
 2. Configure Supabase auth providers and callback URLs.
 3. Configure Creem products and webhook endpoint (`/api/webhooks/creem`).
 4. Set all production env vars in your host (Vercel or similar).
-5. Verify webhook signatures and event delivery in Creem dashboard.
-6. Run `npm run build` and `npm test` before shipping.
-7. Add at least one admin email in `ADMIN_EMAILS`.
+5. Set `REDIS_URL` to your Redis TCP endpoint and run `npm run workers` as a background/worker process in production.
+6. Verify webhook signatures and event delivery in Creem dashboard.
+7. Run `npm run build` and `npm test` before shipping.
+8. Add at least one admin email in `ADMIN_EMAILS`.
 
 ## License
 

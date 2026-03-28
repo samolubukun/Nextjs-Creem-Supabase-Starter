@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { enqueueEmail, isBullMQConfigured } from "@/lib/bullmq";
 import { sendWelcomeEmail } from "@/lib/email-service";
 import { logger } from "@/lib/logger";
 import { enforceRateLimit, rateLimitPolicies } from "@/lib/rate-limit";
@@ -36,9 +37,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid firstName" }, { status: 400 });
     }
 
-    await sendWelcomeEmail(email, {
+    const emailData = {
       firstName: typeof firstName === "string" ? firstName : "there",
-    });
+    };
+
+    if (isBullMQConfigured()) {
+      await enqueueEmail({
+        type: "welcome",
+        email,
+        firstName: emailData.firstName,
+      });
+    } else {
+      await sendWelcomeEmail(email, emailData);
+    }
 
     const response = NextResponse.json({ success: true });
     rateLimit.headers.forEach((value, key) => {

@@ -1,4 +1,5 @@
 import { Webhook } from "@creem_io/nextjs";
+import { enqueueEmail, isBullMQConfigured } from "@/lib/bullmq";
 import { buildCacheKey, deleteCacheKey } from "@/lib/cache";
 import { getPlanName, PRODUCT_PRICE_MAPPING } from "@/lib/credits-config";
 import { sendPaymentConfirmationEmail } from "@/lib/email-service";
@@ -116,11 +117,21 @@ export const POST = Webhook({
     // Send Payment Confirmation Email
     const { data: userData } = await db.auth.admin.getUserById(row.user_id);
     if (userData?.user?.email) {
-      await sendPaymentConfirmationEmail(userData.user.email, {
+      const emailProps = {
         firstName: userData.user.user_metadata?.full_name?.split(" ")[0] || "there",
         planName: row.product_name || "Active",
         amount: event.subscription?.current_period_end_date ? "Subscription Activated" : "Paid",
-      });
+      };
+
+      if (isBullMQConfigured()) {
+        await enqueueEmail({
+          type: "payment-confirmation",
+          email: userData.user.email,
+          ...emailProps,
+        });
+      } else {
+        await sendPaymentConfirmationEmail(userData.user.email, emailProps);
+      }
     }
 
     const productName = row.product_name ?? "Product";
