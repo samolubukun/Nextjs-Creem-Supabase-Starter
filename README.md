@@ -16,6 +16,7 @@
 ![Radix](https://img.shields.io/badge/Radix%20UI-262633?style=for-the-badge&logoColor=white)
 ![Resend](https://img.shields.io/badge/Resend-6B7280?style=for-the-badge&logoColor=white)
 ![PostHog](https://img.shields.io/badge/PostHog-F54E00?style=for-the-badge&logoColor=white)
+![BetterStack](https://img.shields.io/badge/Better%20Stack-000?style=for-the-badge&logoColor=white)
 ![Drizzle](https://img.shields.io/badge/Drizzle-C5F74F?style=for-the-badge&logo=drizzle&logoColor=black)
 ![Vercel](https://img.shields.io/badge/Vercel-000?style=for-the-badge&logo=vercel&logoColor=white)
 
@@ -61,6 +62,7 @@ Open `http://localhost:3000`.
 - Resend + React Email templates for transactional emails
 - PostHog client integration (optional)
 - Biome for linting and formatting
+- Better Stack for structured log ingestion (`@logtail/node`)
 - GitHub Actions for CI and Vercel for preview deploys
 
 ## What You Get
