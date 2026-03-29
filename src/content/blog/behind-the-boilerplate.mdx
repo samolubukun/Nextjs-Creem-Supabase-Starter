@@ -1,0 +1,240 @@
+---
+title: "Anatomy of a Production-Grade SAAS Boilerplate"
+publishedAt: "2026-03-28"
+summary: "Every integration, every pattern, every decision — a deep dive into how this Next.js + Supabase + Creem starter ships a billing-aware SAAS from day one."
+author: "Samuel Olubukun"
+---
+
+# Anatomy of a Production-Grade SAAS Boilerplate
+
+Most boilerplates give you auth and a blank dashboard. You still spend two weeks wiring up payments, webhooks, email, rate limiting, and background jobs before you write a single line of product logic. We wanted to eliminate that.
+
+This is the story of how we built a starter that ships a **billing-aware SAAS** on the first `git clone`.
+
+## The Foundation: Next.js 16 + Supabase
+
+The stack starts with **Next.js 16** (App Router) and **Supabase** for auth and Postgres. That pairing is no accident — Supabase's `@supabase/ssr` package gives us cookie-based auth that works in Server Components, Route Handlers, and Client Components without token juggling.
+
+Our Supabase integration splits into three clients:
+
+- **Browser client** (`src/lib/supabase/client.ts`) — for client-side realtime subscriptions
+- **Server client** (`src/lib/supabase/server.ts`) — for Server Components and Actions, with safe cookie read/write
+- **Admin client** (`src/lib/supabase/admin.ts`) — service-role key, bypasses RLS for server-side mutations
+
+A thin **proxy** (`src/proxy.ts`) handles route protection and auth-aware redirects. Unauthenticated users hitting `/dashboard/*` get bounced to `/login`. Authenticated users hitting `/login` get bounced to `/dashboard`. Simple, predictable, zero-drama.
+
+<Callout>
+  We never trust <code>getSession()</code> on the server. Every protected route validates the JWT signature against Supabase's public keys via <code>getUser()</code>. Cookie spoofing doesn't survive that check.
+</Callout>
+
+### Database Schema
+
+The SQL schema (`supabase/db_schema.sql`) bootstraps ten tables:
+
+| Table | Purpose |
+|-------|---------|
+| `profiles` | User display name, email, LTV tracking |
+| `subscriptions` | Creem subscription state, period dates, seats |
+| `credits` | Wallet balance (integer or unlimited sentinel) |
+| `credit_transactions` | Append-only ledger for every credit grant/spend |
+| `licenses` | Product license keys, active/deactivated status |
+| `billing_events` | Notification feed for checkout, renewal, refund events |
+| `purchases` | One-time purchase records |
+| `chats` / `chat_messages` | AI assistant conversation persistence |
+| `webhook_events` | Idempotency tracker for Creem webhook ingestion |
+| `files` | S3-backed file metadata |
+
+Row-Level Security is enforced on every table. Client reads are scoped to `auth.uid()`. All writes go through the admin client. There's also a Drizzle schema mirror (`src/db/schema.ts`) for teams that prefer migration workflows.
+
+## The Payments Engine: Creem
+
+Here's where things get interesting.
+
+### What Is Creem?
+
+[Creem](https://creem.io) is a merchant-of-record payment platform built for indie hackers and SAAS teams. It handles:
+
+- **Checkout sessions** — hosted payment pages with pre-filled customer info, discount codes, seat-based billing, and custom fields
+- **Subscription lifecycle** — activation, trialing, pausing, scheduled cancellation, immediate cancellation, upgrades with proration
+- **Webhooks** — signed, retried event delivery for every billing event
+- **Customer portal** — self-service billing management links
+- **License keys** — generate, activate, validate, and deactivate software licenses
+- **Tax compliance** — as merchant of record, Creem handles tax calculation, collection, and remittance
+
+For a solo developer or small team, this means you never touch Stripe's tax engine, never worry about VAT registration in the EU, and never build a license management system from scratch.
+
+### Our Creem Integration
+
+We use **two Creem packages**:
+
+- `creem` (v1.3.6+) — the core SDK, Speakeasy-generated, type-safe. We use it for checkout creation, subscription mutations, license management, and product lookups.
+- `@creem_io/nextjs` (v0.6.0+) — the official Next.js adapter. We use it primarily for the `Webhook()` handler that verifies signatures and dispatches typed lifecycle callbacks.
+
+Here's how checkout works end-to-end:
+
+```tsx
+// 1. Client component drops a <CreemCheckout> button
+<CreemCheckout productId="prod_starter" referenceId={user.id}>
+  <Button>Upgrade to Starter</Button>
+</CreemCheckout>
+
+// 2. The component hits our checkout route
+// src/app/api/checkout/route.ts
+const session = await creem.checkouts.create({
+  productId,
+  successUrl: `${APP_URL}/dashboard?welcome=true`,
+  metadata: { user_id: user.id },
+});
+
+// 3. User pays on Creem's hosted page
+// 4. Creem fires a webhook to /webhooks/creem
+```
+
+The webhook handler is where the real business logic lives:
+
+```ts
+export const POST = Webhook({
+  webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+  onCheckoutCompleted: async ({ customer, product, metadata, subscription }) => {
+    // upsert subscription record
+    // grant credits
+    // increment LTV
+    // send payment confirmation email
+  },
+  onGrantAccess: async ({ customer, metadata }) => {
+    // activate user entitlements
+  },
+  onRevokeAccess: async ({ customer, metadata }) => {
+    // pause/cancel access
+  },
+});
+```
+
+<Callout>
+  Every webhook is wrapped in idempotency tracking. The <code>webhook_events</code> table records processed event IDs. If Creem retries a delivery (it does — 4 times with backoff), we detect the duplicate and short-circuit before writing anything. The subscription upsert happens <strong>before</strong> the idempotency insert, so even a mid-flight crash stays safe on retry.
+</Callout>
+
+### Credit System
+
+We layered a **credits wallet** on top of Creem's billing:
+
+- Each product maps to a credit amount in `src/lib/credits-config.ts`
+- The "Pro Max" tier gets the unlimited sentinel (`-1`)
+- Grants are atomic: insert into `credit_transactions`, then upsert `credits` via a Postgres RPC
+- Spending is atomic too: `spend_credits()` does a row-lock, validates balance, decrements, and logs — all inside one transaction
+- The unlimited sentinel bypasses deduction entirely
+
+This means you can sell AI tokens, API calls, or feature unlocks as discrete credit units without building a custom metered billing system.
+
+## The Job Pipeline: BullMQ + Redis
+
+Real work shouldn't block the request cycle. We use **BullMQ** with **ioredis** for three job queues:
+
+| Queue | Concurrency | Purpose |
+|-------|------------|---------|
+| `email` | 5 | Welcome emails, payment confirmations |
+| `webhook-processing` | 3 | Heavy webhook business logic |
+| `audit` | 10 | Append-only audit log writes |
+
+The workers run as a standalone process (`npm run workers`). Each job processor is in its own file under `src/lib/bullmq/processors/`. Jobs retry 3 times with exponential backoff (2-second delay). Graceful shutdown on SIGINT/SIGTERM drains in-flight jobs before exiting.
+
+<Callout>
+  BullMQ uses a standard Redis TCP connection (<code>redis://</code> or <code>rediss://</code>), not Upstash's HTTP Redis. If <code>REDIS_URL</code> is not set, the producer returns <code>false</code> and the caller falls back to direct synchronous execution. Zero breaking changes — BullMQ is an optimization, not a requirement.
+</Callout>
+
+## Rate Limiting: Upstash Redis
+
+Sensitive API routes are guarded with **Upstash Ratelimit** using a sliding window algorithm:
+
+```ts
+const rateLimiter = new Ratelimit({
+  redis: getRedisClient(),
+  limiter: Ratelimit.slidingWindow(20, "60 s"), // 20 requests per 60 seconds
+});
+```
+
+Protected routes:
+- `/api/chat` — 20 req/min per user
+- `/api/checkout` — 10 req/5min per user
+- `/api/subscriptions/*` — 10 req/5min per user
+- `/api/auth/welcome` — 3 req/hour per IP
+
+The limiter uses authenticated user identity as the key and falls back to the client IP for unauthenticated endpoints. The same Upstash Redis instance also powers **cache-aside patterns** for expensive admin dashboard aggregations and blog fetches.
+
+## Email: Resend + React Email
+
+Transactional emails use **Resend** for delivery and **React Email** for templating:
+
+```tsx
+// src/emails/welcome.tsx
+export function WelcomeEmail({ firstName }: { firstName?: string }) {
+  return (
+    <Html>
+      <Body>
+        <Heading>Welcome{firstName ? `, ${firstName}` : ""}!</Heading>
+        <Text>Your account is ready. Let's build something.</Text>
+      </Body>
+    </Html>
+  );
+}
+```
+
+Each email renders to both HTML and plain text via `render()`. In development (no `RESEND_API_KEY`), emails are logged to console instead of sent. Idempotency keys prevent duplicate sends per event type.
+
+When BullMQ is active, emails are enqueued and processed asynchronously by the worker. Without Redis, they're sent inline — same behavior, just synchronous.
+
+## Storage: S3-Compatible Presigned Uploads
+
+The storage system works with **AWS S3, Cloudflare R2, or MinIO**:
+
+1. Client requests a presigned URL from `GET /api/storage/presign`
+2. Server validates file type and size, then signs a `PUT` URL with 5-minute expiry
+3. Browser uploads directly to S3
+4. Client calls `POST /api/storage/complete` to register metadata in the `files` table
+5. Downloads are served through `GET /api/storage/download` with authenticated access
+
+The `endpoint` and `forcePathStyle` env vars make it provider-agnostic. Set them once and the SDK handles the rest.
+
+## AI Assistant: Multi-Provider Chat
+
+The chat endpoint (`POST /api/chat`) supports three LLM providers:
+
+- **OpenAI** — `gpt-4o-mini` via `/v1/chat/completions`
+- **Google Gemini** — `gemini-1.5-flash` via Generative AI API
+- **Anthropic Claude** — `claude-sonnet-4-20250514` via `/v1/messages`
+
+Each response costs 1 credit. Unlimited-tier users bypass deduction. Chat sessions and messages persist to the database, so users see conversation history across sessions.
+
+## Observability
+
+**Structured logging** uses Pino with a custom Better Stack transport. Every API route and webhook handler emits JSON logs with contextual metadata. Sensitive fields (auth headers, API keys, tokens, emails) are automatically redacted.
+
+**PostHog** integration is optional. The client SDK initializes in the browser with `person_profiles: "identified_only"` and the server SDK flushes immediately (no batching, ideal for serverless).
+
+## Testing
+
+Three layers of testing:
+
+- **Vitest** — unit and component tests for validators, helpers, and React components
+- **Cypress** — E2E tests against a local dev server
+- **Storybook** — component documentation and visual testing
+
+The CI pipeline (GitHub Actions) runs lint, tests with coverage, build, Cypress E2E, and Storybook build on every PR. Vercel handles preview deploys.
+
+## SEO
+
+Static metadata, canonical tags, `sitemap.xml`, `robots.txt`, and a generated Open Graph image endpoint. Blog posts get full Open Graph and Twitter Card support with publication date and author metadata.
+
+## The Meta-Question
+
+Why build a boilerplate this comprehensive?
+
+Because the hardest part of shipping a SAAS isn't the product feature. It's the infrastructure around it. Payments, auth, webhooks, email, rate limiting, background jobs, storage, logging — none of these are your product, but all of them are required before your product works.
+
+We wanted to eliminate that entire phase. Clone the repo, set your env vars, and your first product feature starts at **line one**, not line two thousand.
+
+The boilerplate is open source. Fork it, ship with it, and tell us what you build.
+
+<Callout>
+  Live demo: <a href="https://saasxcreem.vercel.app">saasxcreem.vercel.app</a> — use discount code <code>CREEMSAAS2026</code> for 30% off.
+</Callout>
