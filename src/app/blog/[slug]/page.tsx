@@ -75,67 +75,43 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     notFound();
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const articleJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.metadata.title,
-    description: post.metadata.summary,
-    author: {
-      "@type": "Person",
-      name: post.metadata.author,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "SAASXCREEM",
-      url: appUrl,
-    },
-    datePublished: post.metadata.publishedAt,
-    url: `${appUrl}/blog/${post.metadata.slug}`,
-  };
-
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
-      />
-      <div className="flex flex-col min-h-screen bg-background overflow-x-hidden">
-        <LandingHeader />
-        <main className="flex-1 pt-24 pb-20 px-0">
-          <article className="max-w-3xl mx-auto px-4 md:px-8">
-            <Link href="/blog">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="mb-8 font-black uppercase tracking-widest text-xs gap-2"
-              >
-                <ArrowLeft className="size-3" /> Back to Journal
-              </Button>
-            </Link>
+    <div className="flex flex-col min-h-screen bg-background overflow-x-hidden">
+      <LandingHeader />
+      <main className="flex-1 pt-24 pb-20 px-0">
+        <article className="max-w-3xl mx-auto px-4 md:px-8">
+          <Link href="/blog">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mb-8 font-black uppercase tracking-widest text-xs gap-2"
+            >
+              <ArrowLeft className="size-3" /> Back to Journal
+            </Button>
+          </Link>
 
-            <div className="mb-12">
-              <div className="flex flex-wrap items-center gap-3 md:gap-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-6">
-                <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary border border-border whitespace-nowrap">
-                  <Calendar className="size-3" /> {post.metadata.publishedAt}
-                </span>
-                <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary border border-border whitespace-nowrap">
-                  <User className="size-3" /> {post.metadata.author}
-                </span>
-                <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary border border-border whitespace-nowrap">
-                  <Clock className="size-3" /> 5 min read
-                </span>
-              </div>
-              <h1 className="text-3xl md:text-6xl font-black tracking-tighter uppercase leading-[0.95] mb-8 break-words">
-                {post.metadata.title}
-              </h1>
-              <p className="text-lg md:text-2xl text-muted-foreground font-medium leading-tight break-words">
-                {post.metadata.summary}
-              </p>
+          <div className="mb-12">
+            <div className="flex flex-wrap items-center gap-3 md:gap-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-6">
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary border border-border whitespace-nowrap">
+                <Calendar className="size-3" /> {post.metadata.publishedAt}
+              </span>
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary border border-border whitespace-nowrap">
+                <User className="size-3" /> {post.metadata.author}
+              </span>
+              <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary border border-border whitespace-nowrap">
+                <Clock className="size-3" /> 5 min read
+              </span>
             </div>
+            <h1 className="text-3xl md:text-6xl font-black tracking-tighter uppercase leading-[0.95] mb-8 break-words">
+              {post.metadata.title}
+            </h1>
+            <p className="text-lg md:text-2xl text-muted-foreground font-medium leading-tight break-words">
+              {post.metadata.summary}
+            </p>
+          </div>
 
-            <div
-              className="prose prose-invert max-w-none 
+          <div
+            className="prose prose-invert max-w-none 
             prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tighter
             prose-p:text-lg prose-p:leading-relaxed prose-p:text-muted-foreground
             prose-strong:text-foreground prose-strong:font-black
@@ -143,17 +119,16 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             prose-pre:overflow-x-auto prose-pre:w-full
             prose-a:text-primary prose-a:no-underline hover:prose-a:underline
             prose-img:rounded-2xl prose-img:border prose-img:border-border/50"
-            >
-              <MDXRemote
-                source={post.content}
-                components={components}
-                options={mdxOptions as MdxOptions}
-              />
-            </div>
-          </article>
-        </main>
-        <LandingFooter />
-      </div>
-    </>
+          >
+            <MDXRemote
+              source={post.content}
+              components={components}
+              options={mdxOptions as MdxOptions}
+            />
+          </div>
+        </article>
+      </main>
+      <LandingFooter />
+    </div>
   );
 }

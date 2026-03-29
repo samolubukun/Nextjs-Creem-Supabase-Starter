@@ -66,35 +66,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const organizationJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "SAASXCREEM",
-    url: appUrl,
-    description: "Production-ready SaaS boilerplate with Next.js, Supabase, and Creem",
-  };
-  const websiteJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "SAASXCREEM",
-    url: appUrl,
-    description:
-      "Production-ready SaaS starter with authentication, database, payments, and subscriptions.",
-  };
-
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-        />
-      </head>
       <body className={`${bricolage.variable} ${jetbrainsMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
