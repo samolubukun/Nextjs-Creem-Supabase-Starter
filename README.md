@@ -318,31 +318,6 @@ supabase/
 tests/                      Vitest coverage for validators/routes/helpers/components
 ```
 
-Expanded route map:
-
-```text
-src/app/
-  (auth)/
-    login/page.tsx
-    signup/page.tsx
-    callback/route.ts
-  api/
-    checkout/route.ts
-    checkout/success/route.ts
-    billing-portal/route.ts
-    chat/route.ts
-    credits/route.ts
-    credits/spend/route.ts
-    discounts/route.ts
-    licenses/{activate,validate,deactivate}/route.ts
-    subscriptions/{upgrade,cancel,update-seats}/route.ts
-    transactions/route.ts
-    auth/welcome/route.ts
-  webhooks/creem/
-    route.ts
-    handlers.ts
-```
-
 ## Core Implementation Flows
 
 ### 1) Authentication and Route Protection
