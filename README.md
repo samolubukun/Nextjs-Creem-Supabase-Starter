@@ -296,26 +296,37 @@ Webhook processing includes HMAC verification through the SDK wrapper and idempo
 ```text
 src/
   app/
-    (auth)/                 login/signup/callback routes
-    api/                    server routes (billing, credits, licenses, chat, etc.)
-    webhooks/creem/         Creem webhook route + event handlers
-    dashboard/              user dashboard surfaces + admin page
-    blog/                   blog list + slug pages
-  components/               feature and UI components
-  lib/                      service clients and business helpers
-    bullmq/                 queue connection, types, producer, processors, workers
-  db/                       drizzle schema + DB client
-  emails/                   transactional email templates/components
-  proxy.ts                  route protection and auth redirection
+    (auth)/login, signup, callback          auth pages + OAuth exchange
+    api/
+      checkout/route.ts                     start Creem checkout
+      checkout/success/route.ts             post-payment sync fallback
+      billing-portal/route.ts               customer portal redirect
+      chat/route.ts                         AI assistant (openai/gemini/anthropic)
+      credits/route.ts                      wallet balance
+      credits/spend/route.ts                atomic credit spend
+      discounts/route.ts                    discount validation
+      licenses/activate, validate, deactivate
+      subscriptions/upgrade, cancel, update-seats
+      transactions/route.ts                 payment history
+      auth/welcome/route.ts                 onboarding email
+      storage/presign, complete, files, download  S3 presigned flow
+    webhooks/creem/
+      route.ts + handlers.ts                idempotent Creem event ingestion
+    dashboard/                              user surfaces + admin page
+    blog/                                   MDX blog pages
+  components/                               feature + UI components
+  lib/
+    bullmq/                                 queue connection, types, producer, processors, workers
+    supabase/                               browser, server, admin clients + proxy
+    storage/                                S3 presigned URL helpers
+    email-service.ts, posthog.ts, redis.ts, rate-limit.ts, cache.ts, logger.ts
+  db/                                       drizzle schema + DB client
+  emails/                                   React Email templates
+  proxy.ts                                  route protection + auth redirection
 
-scripts/
-  start-workers.ts          BullMQ worker process entry point
-
-supabase/
-  db_schema.sql             canonical SQL bootstrap schema
-  migrations/               drizzle-generated SQL migrations
-
-tests/                      Vitest coverage for validators/routes/helpers/components
+scripts/start-workers.ts                    BullMQ worker process entry point
+supabase/db_schema.sql                      canonical SQL bootstrap
+tests/                                      Vitest coverage
 ```
 
 ## Core Implementation Flows
