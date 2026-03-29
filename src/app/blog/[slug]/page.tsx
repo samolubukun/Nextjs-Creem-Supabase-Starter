@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { MDXRemote, type MDXRemoteProps } from "next-mdx-remote/rsc";
 import rehypePrettyCode from "rehype-pretty-code";
 import { Callout } from "@/components/blog/callout";
+import { DataTable } from "@/components/blog/data-table";
 import { LandingFooter } from "@/components/layout/landing-footer";
 import { LandingHeader } from "@/components/layout/landing-header";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { getBlogPostBySlug, getBlogPosts } from "@/lib/blog";
 
 const components = {
   Callout,
+  DataTable,
 };
 
 const mdxOptions = {
