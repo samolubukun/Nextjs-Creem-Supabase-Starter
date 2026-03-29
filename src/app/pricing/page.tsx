@@ -75,35 +75,8 @@ const plans = [
 ];
 
 export default function PricingPage() {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const productJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    name: "SAASXCREEM Pricing Plans",
-    itemListElement: plans.map((plan, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      item: {
-        "@type": "Product",
-        name: plan.name,
-        description: plan.description,
-        offers: {
-          "@type": "Offer",
-          price: plan.price.replace(/[^0-9.]/g, ""),
-          priceCurrency: "USD",
-          availability: "https://schema.org/InStock",
-          url: `${appUrl}/pricing`,
-        },
-      },
-    })),
-  };
-
   return (
     <div className="min-h-screen bg-background selection:bg-primary/30 flex flex-col">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
-      />
       <LandingHeader />
 
       <main className="flex-1">
