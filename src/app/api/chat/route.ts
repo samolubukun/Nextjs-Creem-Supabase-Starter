@@ -112,21 +112,15 @@ export async function POST(req: NextRequest) {
       const data = await response.json();
       content =
         data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate a response.";
-    } else if (provider === "openai" || provider === "anthropic") {
-      const baseUrl =
-        provider === "openai" ? "https://api.openai.com/v1" : "https://api.anthropic.com/v1";
-      const response = await fetch(`${baseUrl}/chat/completions`, {
+    } else if (provider === "openai") {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
-          ...(provider === "anthropic" && {
-            "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01",
-          }),
         },
         body: JSON.stringify({
-          model: model || (provider === "openai" ? "gpt-4o-mini" : "claude-3-haiku-20240307"),
+          model: model || "gpt-4o-mini",
           messages: messages.map((m) => ({
             role: m.role,
             content: m.content,
@@ -135,10 +129,36 @@ export async function POST(req: NextRequest) {
       });
 
       const data = await response.json();
-      content =
-        data.choices?.[0]?.message?.content ||
-        data.content?.[0]?.text ||
-        "I couldn't generate a response.";
+      content = data.choices?.[0]?.message?.content || "I couldn't generate a response.";
+    } else if (provider === "anthropic") {
+      const systemMessages = messages.filter((m) => m.role === "system");
+      const nonSystemMessages = messages.filter((m) => m.role !== "system");
+
+      const body: Record<string, unknown> = {
+        model: model || "claude-sonnet-4-20250514",
+        max_tokens: 1024,
+        messages: nonSystemMessages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+      };
+
+      if (systemMessages.length > 0) {
+        body.system = systemMessages.map((m) => m.content).join("\n");
+      }
+
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+      content = data.content?.[0]?.text || "I couldn't generate a response.";
     } else {
       return NextResponse.json({ error: "Unsupported provider" }, { status: 400 });
     }
