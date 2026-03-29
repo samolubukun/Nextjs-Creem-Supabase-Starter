@@ -11,8 +11,6 @@ We wanted to eliminate that entire phase. Clone the repo, set your env vars, and
 
 This is how we built a starter that ships a **billing-aware SAAS** on the first `git clone`.
 
----
-
 ## Foundation: Next.js 16 + Supabase
 
 The stack starts with **Next.js 16** (App Router) and **Supabase** for auth and Postgres. Supabase's `@supabase/ssr` package gives us cookie-based auth that works in Server Components, Route Handlers, and Client Components without token juggling.
@@ -46,8 +44,6 @@ files | S3-backed file metadata" />
 
 There's also a Drizzle schema mirror (`src/db/schema.ts`) for teams that prefer migration workflows.
 
----
-
 ## Payments Engine: Creem
 
 ### What Is Creem?
@@ -69,7 +65,7 @@ We use two Creem packages:
 - `creem` (v1.3.6+) — the core SDK, Speakeasy-generated, type-safe. Handles checkout creation, subscription mutations, license management, and product lookups.
 - `@creem_io/nextjs` (v0.6.0+) — the official Next.js adapter. We use it for the `Webhook()` handler that verifies signatures and dispatches typed lifecycle callbacks.
 
-**Checkout flow:**
+### Checkout Flow
 
 ```tsx
 // 1. Client component — drop in a <CreemCheckout> button
@@ -88,9 +84,10 @@ const session = await creem.checkouts.create({
 // 4. Creem fires a webhook → /webhooks/creem
 ```
 
-**Webhook handler** (`src/app/webhooks/creem/route.ts`):
+### Webhook Handler
 
 ```ts
+// src/app/webhooks/creem/route.ts
 export const POST = Webhook({
   webhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
   onCheckoutCompleted: async ({ customer, product, metadata, subscription }) => {
@@ -129,8 +126,6 @@ Grant logic:
 - Spending is atomic too: `spend_credits()` does a row-lock, validates balance, decrements, and logs — all in one transaction
 - The unlimited sentinel (`-1`) bypasses deduction entirely
 
----
-
 ## Job Pipeline: BullMQ + Redis
 
 Real work shouldn't block the request cycle. We use **BullMQ** with **ioredis** for async job processing.
@@ -144,8 +139,6 @@ Workers run as a standalone process (`npm run workers`). Jobs retry 3 times with
 <Callout>
   BullMQ uses a standard Redis TCP connection — not Upstash's HTTP Redis. If <code>REDIS_URL</code> is not set, the producer returns <code>false</code> and callers fall back to synchronous execution. Zero breaking changes.
 </Callout>
-
----
 
 ## Rate Limiting: Upstash Redis
 
@@ -164,8 +157,6 @@ const rateLimiter = new Ratelimit({
 /api/auth/welcome | 3 req / hour | Client IP" />
 
 The same Upstash Redis instance also powers **cache-aside patterns** for expensive admin dashboard aggregations and blog fetches.
-
----
 
 ## Email: Resend + React Email
 
@@ -186,8 +177,6 @@ export function WelcomeEmail({ firstName }: { firstName?: string }) {
 
 Each email renders to both HTML and plain text. In development (no `RESEND_API_KEY`), emails log to console. When BullMQ is active, emails are enqueued and processed by the worker.
 
----
-
 ## Storage: S3-Compatible Presigned Uploads
 
 Works with **AWS S3, Cloudflare R2, or MinIO**. The `endpoint` and `forcePathStyle` env vars make it provider-agnostic.
@@ -198,8 +187,6 @@ Works with **AWS S3, Cloudflare R2, or MinIO**. The `endpoint` and `forcePathSty
 4. Client calls `POST /api/storage/complete` to register metadata
 5. Downloads served through `GET /api/storage/download` with auth checks
 
----
-
 ## AI Assistant: Multi-Provider Chat
 
 `POST /api/chat` supports three LLM providers. Each response costs 1 credit (unlimited-tier users bypass deduction). Conversations persist across sessions.
@@ -208,15 +195,11 @@ Works with **AWS S3, Cloudflare R2, or MinIO**. The `endpoint` and `forcePathSty
 Anthropic | /v1/messages | claude-sonnet-4-20250514
 Google Gemini | Generative AI API | gemini-1.5-flash" />
 
----
-
 ## Observability
 
 **Structured logging** uses Pino with a custom Better Stack transport. Every API route emits JSON logs with contextual metadata. Sensitive fields (auth headers, API keys, emails) are automatically redacted.
 
 **PostHog** integration is optional. Client SDK uses `person_profiles: "identified_only"` with `localStorage` persistence. Server SDK flushes immediately — no batching, ideal for serverless.
-
----
 
 ## Testing and CI
 
@@ -225,8 +208,6 @@ E2E | Cypress | Full user flows against local dev server
 Visual | Storybook | Component documentation and visual regression" />
 
 The GitHub Actions CI pipeline runs lint, tests with coverage, build, Cypress E2E, and Storybook build on every PR. Vercel handles preview deploys.
-
----
 
 ## Why This Exists
 
