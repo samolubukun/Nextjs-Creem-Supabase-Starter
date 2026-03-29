@@ -33,21 +33,16 @@ A thin **proxy** (`src/proxy.ts`) handles route protection. Unauthenticated user
 
 The SQL schema (`supabase/db_schema.sql`) bootstraps ten tables with Row-Level Security enforced on every one. Client reads are scoped to `auth.uid()`. All writes go through the admin client.
 
-<DataTable
-  headers={["Table", "Purpose"]}
-  rows={[
-    ["profiles", "User display name, email, LTV tracking"],
-    ["subscriptions", "Creem subscription state, period dates, seats"],
-    ["credits", "Wallet balance (integer or unlimited sentinel)"],
-    ["credit_transactions", "Append-only ledger for every grant and spend"],
-    ["licenses", "Product license keys, active / deactivated status"],
-    ["billing_events", "Notification feed for checkout, renewal, refund"],
-    ["purchases", "One-time purchase records"],
-    ["chats / chat_messages", "AI assistant conversation persistence"],
-    ["webhook_events", "Idempotency tracker for Creem ingestion"],
-    ["files", "S3-backed file metadata"],
-  ]}
-/>
+<BlogTable headers="Table | Purpose" data="profiles | User display name, email, LTV tracking
+subscriptions | Creem subscription state, period dates, seats
+credits | Wallet balance (integer or unlimited sentinel)
+credit_transactions | Append-only ledger for every grant and spend
+licenses | Product license keys, active / deactivated status
+billing_events | Notification feed for checkout, renewal, refund
+purchases | One-time purchase records
+chats / chat_messages | AI assistant conversation persistence
+webhook_events | Idempotency tracker for Creem ingestion
+files | S3-backed file metadata" />
 
 There's also a Drizzle schema mirror (`src/db/schema.ts`) for teams that prefer migration workflows.
 
@@ -123,15 +118,10 @@ Every webhook is wrapped in **idempotency tracking**. The `webhook_events` table
 
 We layered a **credits wallet** on top of Creem's billing. Each product maps to a credit amount in `src/lib/credits-config.ts`.
 
-<DataTable
-  headers={["Plan", "Product ID Env Var", "Credits", "Price"]}
-  rows={[
-    ["Starter", "CREEM_STARTER_PRODUCT_ID", "100 / month", "$10 / month"],
-    ["Creator", "CREEM_PRO_PRODUCT_ID", "500 / month", "$29 / month"],
-    ["Professional", "CREEM_ENTERPRISE_PRODUCT_ID", "2,000 / month", "$79 / month"],
-    ["Nova Pro Max", "CREEM_PRO_MAX_PRODUCT_ID", "Unlimited (sentinel)", "$3,000 one-time"],
-  ]}
-/>
+<BlogTable headers="Plan | Credits | Price" data="Starter | 100 / month | $10 / month
+Creator | 500 / month | $29 / month
+Professional | 2,000 / month | $79 / month
+Nova Pro Max | Unlimited (sentinel) | $3,000 one-time" />
 
 Grant logic:
 
@@ -145,14 +135,9 @@ Grant logic:
 
 Real work shouldn't block the request cycle. We use **BullMQ** with **ioredis** for async job processing.
 
-<DataTable
-  headers={["Queue", "Concurrency", "Purpose"]}
-  rows={[
-    ["email", "5", "Welcome emails, payment confirmations"],
-    ["webhook-processing", "3", "Heavy webhook business logic"],
-    ["audit", "10", "Append-only audit log writes"],
-  ]}
-/>
+<BlogTable headers="Queue | Concurrency | Purpose" data="email | 5 | Welcome emails, payment confirmations
+webhook-processing | 3 | Heavy webhook business logic
+audit | 10 | Append-only audit log writes" />
 
 Workers run as a standalone process (`npm run workers`). Jobs retry 3 times with exponential backoff. Graceful shutdown on SIGINT/SIGTERM drains in-flight jobs before exiting.
 
@@ -173,15 +158,10 @@ const rateLimiter = new Ratelimit({
 });
 ```
 
-<DataTable
-  headers={["Route", "Limit", "Key"]}
-  rows={[
-    ["/api/chat", "20 req / min", "User ID"],
-    ["/api/checkout", "10 req / 5 min", "User ID"],
-    ["/api/subscriptions/*", "10 req / 5 min", "User ID"],
-    ["/api/auth/welcome", "3 req / hour", "Client IP"],
-  ]}
-/>
+<BlogTable headers="Route | Limit | Key" data="/api/chat | 20 req / min | User ID
+/api/checkout | 10 req / 5 min | User ID
+/api/subscriptions/* | 10 req / 5 min | User ID
+/api/auth/welcome | 3 req / hour | Client IP" />
 
 The same Upstash Redis instance also powers **cache-aside patterns** for expensive admin dashboard aggregations and blog fetches.
 
@@ -224,14 +204,9 @@ Works with **AWS S3, Cloudflare R2, or MinIO**. The `endpoint` and `forcePathSty
 
 `POST /api/chat` supports three LLM providers. Each response costs 1 credit (unlimited-tier users bypass deduction). Conversations persist across sessions.
 
-<DataTable
-  headers={["Provider", "Endpoint", "Default Model"]}
-  rows={[
-    ["OpenAI", "/v1/chat/completions", "gpt-4o-mini"],
-    ["Anthropic", "/v1/messages", "claude-sonnet-4-20250514"],
-    ["Google Gemini", "Generative AI API", "gemini-1.5-flash"],
-  ]}
-/>
+<BlogTable headers="Provider | Endpoint | Default Model" data="OpenAI | /v1/chat/completions | gpt-4o-mini
+Anthropic | /v1/messages | claude-sonnet-4-20250514
+Google Gemini | Generative AI API | gemini-1.5-flash" />
 
 ---
 
@@ -245,14 +220,9 @@ Works with **AWS S3, Cloudflare R2, or MinIO**. The `endpoint` and `forcePathSty
 
 ## Testing and CI
 
-<DataTable
-  headers={["Layer", "Tool", "Scope"]}
-  rows={[
-    ["Unit / Component", "Vitest + Testing Library", "Validators, helpers, React components"],
-    ["E2E", "Cypress", "Full user flows against local dev server"],
-    ["Visual", "Storybook", "Component documentation and visual regression"],
-  ]}
-/>
+<BlogTable headers="Layer | Tool | Scope" data="Unit / Component | Vitest + Testing Library | Validators, helpers, React components
+E2E | Cypress | Full user flows against local dev server
+Visual | Storybook | Component documentation and visual regression" />
 
 The GitHub Actions CI pipeline runs lint, tests with coverage, build, Cypress E2E, and Storybook build on every PR. Vercel handles preview deploys.
 
