@@ -75,8 +75,31 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     notFound();
   }
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.metadata.title,
+    description: post.metadata.summary,
+    author: {
+      "@type": "Person",
+      name: post.metadata.author,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "SAASXCREEM",
+      url: appUrl,
+    },
+    datePublished: post.metadata.publishedAt,
+    url: `${appUrl}/blog/${post.metadata.slug}`,
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background overflow-x-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <LandingHeader />
       <main className="flex-1 pt-24 pb-20 px-0">
         <article className="max-w-3xl mx-auto px-4 md:px-8">

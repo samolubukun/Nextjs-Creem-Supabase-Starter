@@ -18,6 +18,7 @@ export const initPostHog = () => {
         capture_pageview: false,
         persistence: "localStorage",
         cross_subdomain_cookie: false,
+        person_profiles: "identified_only",
       });
       posthogClient = posthog;
     }

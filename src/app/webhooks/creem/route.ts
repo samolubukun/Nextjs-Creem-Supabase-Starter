@@ -4,6 +4,7 @@ import { buildCacheKey, deleteCacheKey } from "@/lib/cache";
 import { getPlanName, PRODUCT_PRICE_MAPPING } from "@/lib/credits-config";
 import { sendPaymentConfirmationEmail } from "@/lib/email-service";
 import { logger } from "@/lib/logger";
+import { captureServerEvent } from "@/lib/posthog-server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { buildSubscriptionUpdate, buildSubscriptionUpsert, handleCreditGrant } from "./handlers";
 
@@ -214,6 +215,13 @@ export const POST = Webhook({
     }
 
     await invalidateAdminCache();
+
+    captureServerEvent(row.user_id, "checkout_completed", {
+      product_id: row.creem_product_id,
+      product_name: productName,
+      amount: eventExtras.amount,
+      currency: eventExtras.currency,
+    });
   },
 
   onSubscriptionPaid: async (event) => {
@@ -286,6 +294,15 @@ export const POST = Webhook({
     }
 
     await invalidateAdminCache();
+
+    if (sub?.user_id) {
+      captureServerEvent(sub.user_id, "subscription_paid", {
+        subscription_id: event.id,
+        product_name: sub.product_name,
+        amount: eventExtras.amount,
+        currency: eventExtras.currency,
+      });
+    }
   },
 
   onSubscriptionCanceled: async (event) => {
@@ -453,23 +470,31 @@ export const POST = Webhook({
     });
   },
 
-  onGrantAccess: async ({ reason, customer, metadata }) => {
-    const userId = (metadata as Record<string, string> | undefined)?.referenceId;
+  onGrantAccess: async (context: {
+    reason: string;
+    customer: { email: string };
+    metadata?: Record<string, unknown>;
+  }) => {
+    const userId = (context.metadata as Record<string, string> | undefined)?.referenceId;
     logger.info("Webhook grant access", {
       event: "webhook.grant_access",
-      reason,
+      reason: context.reason,
       userId: userId ?? "unknown",
-      customerEmail: customer.email,
+      customerEmail: context.customer.email,
     });
   },
 
-  onRevokeAccess: async ({ reason, customer, metadata }) => {
-    const userId = (metadata as Record<string, string> | undefined)?.referenceId;
+  onRevokeAccess: async (context: {
+    reason: string;
+    customer: { email: string };
+    metadata?: Record<string, unknown>;
+  }) => {
+    const userId = (context.metadata as Record<string, string> | undefined)?.referenceId;
     logger.info("Webhook revoke access", {
       event: "webhook.revoke_access",
-      reason,
+      reason: context.reason,
       userId: userId ?? "unknown",
-      customerEmail: customer.email,
+      customerEmail: context.customer.email,
     });
   },
 });

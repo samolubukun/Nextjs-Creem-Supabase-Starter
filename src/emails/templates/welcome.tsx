@@ -9,23 +9,25 @@ export interface WelcomeEmailProps {
 
 export function WelcomeEmail({
   firstName = "there",
-  dashboardUrl = "https://saasxcreem.vercel.app/dashboard",
+  dashboardUrl = process.env.NEXT_PUBLIC_APP_URL
+    ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
+    : "https://saasxcreem.vercel.app/dashboard",
 }: WelcomeEmailProps) {
   return (
-    <EmailLayout previewText="Welcome to SAASXCREEM! 🚀 Your system starts now.">
+    <EmailLayout previewText="Welcome to SAASXCREEM! Your system starts now.">
       <Section style={styles.content}>
         <Heading as="h1" style={styles.heading}>
-          System Activated! 👋
+          System Activated!
         </Heading>
         <Text style={styles.text}>
-          Hey {firstName}! Welcome to **SAASXCREEM**. You're now equipped with the ultimate command
+          Hey {firstName}! Welcome to SAASXCREEM. You&apos;re now equipped with the ultimate command
           center for your SaaS.
         </Text>
         <Section style={styles.buttonContainer}>
-          <Button href={dashboardUrl}>Open Command Center →</Button>
+          <Button href={dashboardUrl}>Open Command Center</Button>
         </Section>
         <Text style={styles.text}>
-          If you have any questions, just reply to this email. We're here to help you scale.
+          If you have any questions, just reply to this email. We&apos;re here to help you scale.
         </Text>
       </Section>
     </EmailLayout>

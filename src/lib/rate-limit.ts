@@ -14,6 +14,25 @@ type RateLimitResult = {
   headers: Headers;
 };
 
+const limiters = new Map<string, Ratelimit>();
+
+function getLimiter(policy: RateLimitPolicy): Ratelimit {
+  const redis = getRedisClient();
+  if (!redis) throw new Error("Redis not configured");
+
+  const existing = limiters.get(policy.keyPrefix);
+  if (existing) return existing;
+
+  const limiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(policy.limit, policy.window),
+    analytics: true,
+    prefix: "ratelimit",
+  });
+  limiters.set(policy.keyPrefix, limiter);
+  return limiter;
+}
+
 function getClientIp(request: NextRequest) {
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
@@ -44,13 +63,7 @@ export async function enforceRateLimit(
   const identity = userId ?? getClientIp(request);
   const key = `${policy.keyPrefix}:${identity}`;
 
-  const limiter = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(policy.limit, policy.window),
-    analytics: true,
-    prefix: "ratelimit",
-  });
-
+  const limiter = getLimiter(policy);
   const result = await limiter.limit(key);
   const headers = buildHeaders(result.limit, result.remaining, result.reset);
 

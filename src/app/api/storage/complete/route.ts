@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { isOwnedObjectKey } from "@/lib/storage/s3";
+import { isOwnedObjectKey, verifyUpload } from "@/lib/storage/s3";
 import { createSupabaseServer } from "@/lib/supabase/server";
 
 type CompleteBody = {
@@ -68,6 +68,14 @@ export async function POST(request: NextRequest) {
         { error: "Object key does not belong to current user" },
         { status: 403 },
       );
+    }
+
+    // Verify the S3 object actually exists and matches claimed metadata
+    if (parsed.data.status === "uploaded") {
+      const verification = await verifyUpload(parsed.data.key);
+      if (!verification.exists) {
+        return NextResponse.json({ error: "Upload not found in storage" }, { status: 404 });
+      }
     }
 
     const { data, error } = await supabase

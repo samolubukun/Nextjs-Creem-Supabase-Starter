@@ -13,16 +13,18 @@ export function PaymentConfirmationEmail({
   firstName = "there",
   planName,
   amount,
-  dashboardUrl = "https://saasxcreem.vercel.app/dashboard",
+  dashboardUrl = process.env.NEXT_PUBLIC_APP_URL
+    ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
+    : "https://saasxcreem.vercel.app/dashboard",
 }: PaymentConfirmationEmailProps) {
   return (
     <EmailLayout previewText={`Payment Confirmed: ${planName} Plan is now Active!`}>
       <Section style={styles.content}>
         <Heading as="h1" style={styles.heading}>
-          Payment Successful! ✅
+          Payment Successful!
         </Heading>
         <Text style={styles.text}>
-          Hey {firstName}! We've successfully processed your payment for the **{planName}** plan.
+          Hey {firstName}! We&apos;ve successfully processed your payment for the {planName} plan.
         </Text>
         <Section style={styles.receiptBox}>
           <Text style={styles.receiptTitle}>Order Summary</Text>

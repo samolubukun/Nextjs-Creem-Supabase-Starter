@@ -18,8 +18,11 @@ export function EmailLayout({ previewText, children }: EmailLayoutProps) {
           </Section>
           {children}
           <Section style={styles.footer}>
-            <Text style={styles.footerText}>SAASXCREEM • The ultimate SaaS command center.</Text>
+            <Text style={styles.footerText}>SAASXCREEM - The ultimate SaaS command center.</Text>
             <Text style={styles.footerLinks}>Built with Next.js, Supabase & Creem</Text>
+            <Text style={styles.footerText}>
+              You received this email because you signed up for SAASXCREEM.
+            </Text>
           </Section>
         </Container>
       </Body>

@@ -26,9 +26,9 @@ export async function getOrSetCache<T>(
   }
 
   try {
-    const cached = await redis.get<string>(key);
-    if (cached) {
-      return JSON.parse(cached) as T;
+    const cached = await redis.get<T>(key);
+    if (cached !== null && cached !== undefined) {
+      return cached;
     }
   } catch {
     return loader();
@@ -37,7 +37,7 @@ export async function getOrSetCache<T>(
   const fresh = await loader();
 
   try {
-    await redis.set(key, JSON.stringify(fresh), { ex: options.ttlSeconds });
+    await redis.set(key, fresh, { ex: options.ttlSeconds });
   } catch {
     // Fail-open: keep request successful even if cache write fails.
   }

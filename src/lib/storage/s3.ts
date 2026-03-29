@@ -1,5 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  GetObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
@@ -257,5 +262,25 @@ export async function createPresignedDownload(key: string): Promise<CreateDownlo
     key,
     downloadUrl,
     expiresIn: env.downloadUrlExpiresSeconds,
+  };
+}
+
+export async function verifyUpload(
+  key: string,
+): Promise<{ exists: boolean; size: number; contentType: string }> {
+  const env = parseStorageEnv();
+  const client = getClient();
+
+  const command = new HeadObjectCommand({
+    Bucket: env.bucket,
+    Key: key,
+  });
+
+  const response = await client.send(command);
+
+  return {
+    exists: true,
+    size: response.ContentLength ?? 0,
+    contentType: response.ContentType ?? "application/octet-stream",
   };
 }
