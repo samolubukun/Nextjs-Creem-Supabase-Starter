@@ -612,6 +612,23 @@ npm run workers        # Start BullMQ worker process (requires REDIS_URL)
 7. Run `npm run build` and `npm test` before shipping.
 8. Add at least one admin email in `ADMIN_EMAILS`.
 
+## Docker
+
+```bash
+# Production
+cp .env.docker .env
+docker-compose up --build
+
+# Development
+docker-compose -f docker-compose.dev.yml up --build
+
+# Push to registry
+docker build -t yourname/saasxcreem:latest .
+docker push yourname/saasxcreem:latest
+```
+
+Features: multi-stage builds, non-root user, health check at `/api/health`, standalone Next.js output.
+
 ## License
 
 MIT
