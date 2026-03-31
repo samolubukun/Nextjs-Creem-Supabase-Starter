@@ -19,6 +19,7 @@
 ![BetterStack](https://img.shields.io/badge/Better%20Stack-000?style=for-the-badge&logoColor=white)
 ![Drizzle](https://img.shields.io/badge/Drizzle-C5F74F?style=for-the-badge&logo=drizzle&logoColor=black)
 ![Vercel](https://img.shields.io/badge/Vercel-000?style=for-the-badge&logo=vercel&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
 </div>
 
@@ -64,6 +65,7 @@ Open `http://localhost:3000`.
 - Biome for linting and formatting
 - Better Stack for structured log ingestion (`@logtail/node`)
 - GitHub Actions for CI and Vercel for preview deploys
+- Docker with multi-stage builds, health checks, and non-root runtime
 
 ## What You Get
 
