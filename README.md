@@ -331,7 +331,7 @@ supabase/db_schema.sql                      canonical SQL bootstrap
 tests/                                      Vitest coverage
 ```
 ### System Architecture Diagram
-<img width="1783" height="1757" alt="saasxcreem system architecture" src="https://github.com/user-attachments/assets/c8b52df0-7c1a-4412-a8ec-bda8094634b0" />
+<img width="2030" height="1801" alt="nextjs supabase creem saas" src="https://github.com/user-attachments/assets/9585238b-481c-49c7-971c-552bc6caeab7" />
 
 ## Core Implementation Flows
 
